@@ -21,7 +21,7 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
         options.headers = DefaultHeaders.headers;
 
       let loc  = window.location.href.split(':');
-      var client_id = location.search.split('code=')[1];
+      var client_id = window.location.href.split('code=')[1];
       var name_api = loc[2].split('/');
       if(loc[0] == 'http') {
         DefaultHeaders.port = '2301';

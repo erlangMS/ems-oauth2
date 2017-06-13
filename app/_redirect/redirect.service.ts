@@ -27,7 +27,8 @@ export class RedirectService implements OnDestroy {
       this.verifyTimeTokenExpired();
     }
 
-    var client_id = location.search.split('code=')[1];
+    var client_id = window.location.href.split('code=')[1];
+
     if(client_id == undefined) {
       if(AuthenticationService.currentUser.token == '') {
         this.initVerificationRedirect();
