@@ -1,6 +1,6 @@
 {
   "name": "seguranca",
-  "version": "1.0.1",
+  "version": "2.0.2",
   "description": "Arquitetura básica de segunraça",
   "main": "karma-test-shim.js",
   "typings": "seguranca.d.ts",
