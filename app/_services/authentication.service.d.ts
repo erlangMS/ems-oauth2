@@ -15,6 +15,7 @@ export declare class AuthenticationService {
     login(url: string, body: string, authorization: string): Observable<boolean>;
     getUrlUser(arquivo: string): Observable<any>;
     getUrl(arquivo: string): Observable<any>;
+    getClientCode(client: string): Observable<any>;
     redirectUserTokenAccess(url: string, client_id: string, client_secret: string, code: string, grant_type: string, redirect_uri: string): Observable<boolean>;
     getUrlForDirectLogin(login: string, senha: string, arquivo: string): Observable<{
         url: string;
@@ -24,5 +25,6 @@ export declare class AuthenticationService {
     periodicIncrement(sessionTime: number): void;
     cancelPeriodicIncrement(): void;
     logout(): void;
+    reset(): void;
     findUser(): Observable<void>;
 }

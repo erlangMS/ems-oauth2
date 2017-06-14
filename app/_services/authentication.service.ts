@@ -66,19 +66,36 @@ export class AuthenticationService {
     if(arquivoExterno){
       arquivo = arquivoExterno;
     }
+      let location  = window.location.href.split(':');
     return this.http.get(arquivo)
       .map((res) => {
-        var json = res.json();
-        let clientId = json.client_id;
-        let location  = window.location.href.split(':');
-        let url = location[0]+':'+location[1]+':'+DefaultHeaders.port+''+json.url_client+''+json.param_client+''+clientId+''+json.redirect_param+json.url_redirect;
-        let body = json.body_client;
-        AuthenticationService.client_secret = json.client_secret;
-        let authorization = json.authorization;
-        let store = json.store;
-        return {url:url,body:body,authorization:authorization,store:store};
+          var json = res.json();
+          let clientId = json.client_id;
+          let url = location[0]+':'+location[1]+':'+DefaultHeaders.port+''+json.url_client+''+json.param_client+''+clientId+''+json.redirect_param+json.url_redirect;
+          if(localStorage.getItem('client_id')){
+              let parts = url.split('client_id=');
+              let number = parts[1].split('&');
+              url = parts[0]+'client_id='+localStorage.getItem('client_id')+'&'+number[1]+'&'+number[2];
+          }
+           let body = json.body_client;
+          AuthenticationService.client_secret = json.client_secret;
+          let authorization = json.authorization;
+          let store = json.store;
+          return {url:url,body:body,authorization:authorization,store:store};
       });
   }
+
+
+    getClientCode(client:string):Observable<any>{
+       let location  = window.location.href.split(':');
+        return this.http.get(location[0]+':'+location[1]+':'+DefaultHeaders.port+'/auth/client?filter={"name":"'+client+'"}')
+            .map((resposta) => {
+                let json = resposta.json();
+                localStorage.setItem('client_id',json[0].codigo);
+                return {code:json[0].codigo}
+            });
+
+    }
 
 
   redirectUserTokenAccess(url:string, client_id:string, client_secret:string,code:string,grant_type:string,
@@ -166,6 +183,21 @@ export class AuthenticationService {
         window.location.href = resultado.url;
       });
   }
+
+    reset(): void {
+        this.cancelPeriodicIncrement();
+        this.token = null;
+        localStorage.removeItem('token');
+        localStorage.removeItem("dateAccessPage");
+        localStorage.removeItem('user');
+        AuthenticationService.currentUser = {
+            token: '',
+            login: '',
+            authorization: '',
+            time: '',
+            password: ''
+        }
+    }
 
   findUser() {
     return this.http.post('/recurso','')

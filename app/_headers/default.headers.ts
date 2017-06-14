@@ -29,17 +29,11 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
         DefaultHeaders.port = '2302';
       }
 
-
       if(localStorage.getItem('token')) {
-          let verifyParams = [''];
-          if(options.url != null) {
-              verifyParams = options.url.split ('?');
-          }
-          if(verifyParams[1] == undefined) {
-              options.url = loc[0] + ':' + loc[1] + ':' + DefaultHeaders.port + '' + options.url + '?token=' + localStorage.getItem ('token');
-          } else {
-              options.url = loc[0] + ':' + loc[1] + ':' + DefaultHeaders.port + '' + options.url + '&token=' + localStorage.getItem ('token');
-          }
+          DefaultHeaders.headers.delete('Authorization');
+          DefaultHeaders.headers.append('Authorization', 'Bearer '+localStorage.getItem ('token'));
+          options.url = loc[0] + ':' + loc[1] + ':' + DefaultHeaders.port + '' + options.url;
+
       }
 
       var result = super.merge(options);

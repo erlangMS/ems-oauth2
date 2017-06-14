@@ -16,7 +16,6 @@ export class PessoaService{
   insert(pessoa: Pessoa): Observable<Pessoa> {
     return this.http.post('/unb_aula/pessoa', pessoa, {})
       .map((response: Response) => {
-         console.log(response.json());
         return new Pessoa().fromJSON(response.json());
       });
   }
@@ -39,7 +38,6 @@ export class PessoaService{
   update(pessoa: Pessoa): Observable<Pessoa> {
     return this.http.put('/unb_aula/pessoa/'+pessoa.id , pessoa,{})
       .map((response: Response) => {
-        console.log(response.json());
         return new Pessoa().fromJSON(response.json());
       });
   }
@@ -53,7 +51,6 @@ export class PessoaService{
   findUser() {
     return this.http.post('/recurso','')
       .map((response:Response) => {
-        console.log(response.json());
       });
   }
 

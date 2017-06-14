@@ -19,25 +19,25 @@ export class RedirectService implements OnDestroy {
 
 
   startInitVerifySessionToken() {
-    if(localStorage.getItem('token')){
-      AuthenticationService.currentUser.token = localStorage.getItem('token');
-    }
+              if (localStorage.getItem ('token')) {
+                  AuthenticationService.currentUser.token = localStorage.getItem ('token');
+              }
 
-    if(localStorage.getItem("dateAccessPage") && AuthenticationService.currentUser.token != "") {
-      this.verifyTimeTokenExpired();
-    }
+              if (localStorage.getItem ("dateAccessPage") && AuthenticationService.currentUser.token != "") {
+                  this.verifyTimeTokenExpired ();
+              }
 
-    var client_id = window.location.href.split('code=')[1];
+              var client_id = window.location.href.split ('code=')[1];
 
-    if(client_id == undefined) {
-      if(AuthenticationService.currentUser.token == '') {
-        this.initVerificationRedirect();
-      } else {
-        this.authenticationService.periodicIncrement(3600);
-      }
-    } else if(AuthenticationService.currentUser.token == '' && client_id != undefined){
-      this.redirectWithCodeUrl(client_id);
-    }
+              if (client_id == undefined) {
+                  if (AuthenticationService.currentUser.token == '') {
+                      this.initVerificationRedirect ();
+                  } else {
+                      this.authenticationService.periodicIncrement (3600);
+                  }
+              } else if (AuthenticationService.currentUser.token == '' && client_id != undefined) {
+                  this.redirectWithCodeUrl (client_id);
+              }
 
   }
 
@@ -72,31 +72,41 @@ export class RedirectService implements OnDestroy {
   private redirectWithCodeUrl(code:string) {
     this.authenticationService.getUrlUser('/seguranca/url_security.json')
       .subscribe(resultado =>{
-        var url = resultado.url;
-        this.authenticationService.redirectUserTokenAccess(url, resultado.client_id, resultado.client_secret,code,
-          resultado.grant_type, resultado.url_redirect)
-          .subscribe(resultado => {
-            this.authenticationService.findUser()
-              .subscribe(result => {
-            });
-          })
+          var url = resultado.url;
+          this.authenticationService.redirectUserTokenAccess(url, localStorage.getItem('client_id'), resultado.client_secret,code,
+              resultado.grant_type, resultado.url_redirect)
+              .subscribe(resultado => {
+                  this.authenticationService.findUser()
+                      .subscribe(result => {
+                      });
+            })
       });
   }
 
   private authenticateClient(){
-    if(AuthenticationService.currentUser.token == '') {
-      this.authenticationService.logout();
+    if(!localStorage.getItem('token')) {
+      this.authenticationService.reset();
       this.authenticationService.getUrl('/seguranca/url_security.json')
         .subscribe (resultado => {
-          let url_parts = resultado.url;
-          window.location.href = resultado.url;
+            let urlName = window.location.href.split('/');
+            this.authenticationService.getClientCode(urlName[3])
+                .subscribe(res => {
+                    if (res.code) {
+                        resultado.client_id = res.code;
+                        let parts = resultado.url.split('client_id=');
+                        let number = parts[1].split('&');
+                        resultado.url = parts[0]+'client_id='+res.code+'&'+number[1]+'&'+number[2];
+                    }
+                    window.location.href = resultado.url;
+                })
         });
     } else {
       this.authenticationService.getUrl('/seguranca/url_security.json')
         .subscribe (resultado => {
-          if(resultado.store == 'variable'){
-            AuthenticationService.currentUser.authorization = resultado.authorization;
-          }
+            var url = resultado.url;
+            if (resultado.store == 'variable') {
+                AuthenticationService.currentUser.authorization = resultado.authorization;
+            }
         });
     }
   }
