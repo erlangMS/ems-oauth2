@@ -56,6 +56,7 @@ export class AuthenticationService {
     return this.http.get(arquivo)
       .map((res) => {
         var json = res.json();
+          DefaultHeaders.port = json.port_client;
         return {url:json.find_user_client,client_id:json.client_id,client_secret:json.client_secret,grant_type:json.grant_type,
           url_redirect:json.url_redirect, port_client:json.port_client};
       });
@@ -71,7 +72,8 @@ export class AuthenticationService {
       .map((res) => {
           var json = res.json();
           let clientId = json.client_id;
-          let url = location[0]+':'+location[1]+':'+DefaultHeaders.port+''+json.url_client+''+json.param_client+''+clientId+''+json.redirect_param+json.url_redirect;
+          DefaultHeaders.port = json.port_client;
+          let url = location[0]+':'+location[1]+''+DefaultHeaders.port+''+json.url_client+''+json.param_client+''+clientId+''+json.redirect_param+json.url_redirect;
           if(localStorage.getItem('client_id')){
               let parts = url.split('client_id=');
               let number = parts[1].split('&');
@@ -88,7 +90,7 @@ export class AuthenticationService {
 
     getClientCode(client:string):Observable<any>{
        let location  = window.location.href.split(':');
-        return this.http.get(location[0]+':'+location[1]+':'+DefaultHeaders.port+'/auth/client?filter={"name":"'+client+'"}')
+        return this.http.get(location[0]+':'+location[1]+''+DefaultHeaders.port+'/auth/client?filter={"name":"'+client+'"}')
             .map((resposta) => {
                 let json = resposta.json();
                 localStorage.setItem('client_id',json[0].codigo);
@@ -109,7 +111,7 @@ export class AuthenticationService {
       grant_type:grant_type
     }
     let loc  = window.location.href.split(':');
-    return this.http.post(loc[0]+':'+loc[1]+':'+DefaultHeaders.port+''+url+'?grant_type='+grant_type+'&client_id='+client_id+'&client_secret='+client_secret+'&code='+code+'&redirect_uri='+redirect_uri, JSON.stringify(obj))
+    return this.http.post(loc[0]+':'+loc[1]+''+DefaultHeaders.port+''+url+'?grant_type='+grant_type+'&client_id='+client_id+'&client_secret='+client_secret+'&code='+code+'&redirect_uri='+redirect_uri, JSON.stringify(obj))
       .map((resposta) => {
         var resp = resposta.json();
         AuthenticationService.currentUser.token = resp.access_token;

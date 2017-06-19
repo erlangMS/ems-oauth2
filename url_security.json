@@ -12,6 +12,6 @@
   "body_user" : "",
   "find_user_client": "/authorize/",
   "grant_type": "authorization_code",
-  "port_client":"3000",
+  "port_client":":2344",
   "authorization":"Oauth2"
 }

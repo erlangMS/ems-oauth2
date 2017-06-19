@@ -11,7 +11,8 @@
 		"type": "GET",
 		"cache_control" : "max-age=86400, public",
 		"expires_minute" : 1440,
-		"lang" : "erlang"
+		"lang" : "erlang",
+		"authorization" : "public"
 	},
 
 	{
@@ -26,7 +27,8 @@
 		"type": "GET",
 		"cache_control" : "max-age=3600, public",
 		"expires_minute" : 60,
-		"lang" : "erlang"
+		"lang" : "erlang",
+		"authorization" : "public"
 	},
 
 
@@ -42,7 +44,8 @@
 		"type": "GET",
 		"cache_control" : "no-cache",
 		"expires_minute" : 0,
-		"lang" : "erlang"
+		"lang" : "erlang",
+		"authorization" : "public"
 	},
 
 	{
@@ -57,6 +60,7 @@
 		"type": "GET",
 		"cache_control" : "no-cache",
 		"expires_minute" : 0,
-		"lang" : "erlang"
+		"lang" : "erlang",
+		"authorization" : "public"
 	}
 ]

@@ -23,16 +23,11 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
       let loc  = window.location.href.split(':');
       var client_id = window.location.href.split('code=')[1];
       var name_api = loc[2].split('/');
-      if(loc[0] == 'http') {
-        DefaultHeaders.port = '2301';
-      } else {
-        DefaultHeaders.port = '2302';
-      }
 
       if(localStorage.getItem('token')) {
           DefaultHeaders.headers.delete('Authorization');
           DefaultHeaders.headers.append('Authorization', 'Bearer '+localStorage.getItem ('token'));
-          options.url = loc[0] + ':' + loc[1] + ':' + DefaultHeaders.port + '' + options.url;
+          options.url = loc[0] + ':' + loc[1] + '' + DefaultHeaders.port + '' + options.url;
 
       }
 
