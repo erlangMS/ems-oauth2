@@ -18,6 +18,8 @@ export class AuthenticationService {
 
 
   public static port_server:string = '';
+    
+    public static auth_url:string = '';
 
    public static currentUser:any = {
     token: '',
@@ -45,23 +47,7 @@ export class AuthenticationService {
         }
       });
   }
-    
-    
 
-  getUrlUser(arquivo:string):Observable<any> {
-    let arquivoExterno = localStorage.getItem('externalFile');
-    if(arquivoExterno){
-      arquivo = arquivoExterno;
-    }
-    return this.http.get(arquivo)
-      .map((res) => {
-        var json = res.json();
-          DefaultHeaders.port = json.port_client;
-          DefaultHeaders.host = json.dns_server;
-        return {url:json.find_user_client,client_id:json.client_id,client_secret:json.client_secret,grant_type:json.grant_type,
-          url_redirect:json.url_redirect, port_client:json.port_client};
-      });
-  }
 
   getUrl(arquivo:string):Observable<any> {
     let arquivoExterno = localStorage.getItem('externalFile');
@@ -76,16 +62,21 @@ export class AuthenticationService {
           DefaultHeaders.port = json.port_client;
           DefaultHeaders.host = json.dns_server;
           let url = DefaultHeaders.host+''+DefaultHeaders.port+''+json.url_client+''+json.param_client+''+clientId+''+json.redirect_param+json.url_redirect;
+          if(AuthenticationService.auth_url != '') {
+              url = AuthenticationService.auth_url+''+json.url_client+''+json.param_client+''+clientId+''+json.redirect_param+json.url_redirect;
+          }
           if(localStorage.getItem('client_id')){
               let parts = url.split('client_id=');
               let number = parts[1].split('&');
               url = parts[0]+'client_id='+localStorage.getItem('client_id')+'&'+number[1]+'&'+number[2];
+              
           }
            let body = json.body_client;
           AuthenticationService.client_secret = json.client_secret;
           let authorization = json.authorization;
           let store = json.store;
-          return {url:url,body:body,authorization:authorization,store:store};
+          return {url:url,body:body,authorization:authorization,store:store,client_id:json.client_id,client_secret:json.client_secret,
+              grant_type:json.grant_type,url_redirect:json.url_redirect, port_client:json.port_client};
       });
   }
 
@@ -95,7 +86,10 @@ export class AuthenticationService {
         if(count.length > 1){
             client = count[0];
         }
-        return this.http.get(DefaultHeaders.host+''+DefaultHeaders.port+'/auth/client?filter={"name":"'+client+'"}')
+        if(AuthenticationService.auth_url == ''){
+            AuthenticationService.auth_url = DefaultHeaders.host+''+DefaultHeaders.port
+        }
+        return this.http.get(AuthenticationService.auth_url+'/auth/client?filter={"name":"'+client+'"}')
             .map((resposta) => {
                 let json = resposta.json();
                 localStorage.setItem('client_id',json[0].codigo);
@@ -115,7 +109,10 @@ export class AuthenticationService {
       redirect_uri:redirect_uri,
       grant_type:grant_type
     }
-    return this.http.post(DefaultHeaders.host+''+DefaultHeaders.port+''+url+'?grant_type='+grant_type+'&client_id='+client_id+'&client_secret='+client_secret+'&code='+code+'&redirect_uri='+redirect_uri, JSON.stringify(obj))
+
+
+
+    return this.http.post(url+'?grant_type='+grant_type+'&client_id='+client_id+'&client_secret='+client_secret+'&code='+code+'&redirect_uri='+redirect_uri, JSON.stringify(obj))
       .map((resposta) => {
         var resp = resposta.json();
         AuthenticationService.currentUser.token = resp.access_token;
@@ -212,6 +209,15 @@ export class AuthenticationService {
         localStorage.setItem('user',resp.resource_owner);
       });
   }
+
+    getUrlFromBarramento():Observable<any>{
+        return this.http.get('/questionario/barramento')
+            .map((response) => {
+                let json = response.json();
+                AuthenticationService.auth_url = json.auth_url;
+               return json;
+            });
+    }
 
 
 }

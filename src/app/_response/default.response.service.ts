@@ -14,14 +14,10 @@ export class DefaultResponse extends ResponseOptions  implements OnInit {
     }
     
     merge(options?: ResponseOptionsArgs): ResponseOptions{
-
         let verify = undefined;
-
         if(options != undefined) {
             if(options.body != undefined) {
                verify =  options.body;
-                console.log('verify  >>>>>>>>>>>>>>>> ',verify);
-                console.log(options.body);
             }
         }
 

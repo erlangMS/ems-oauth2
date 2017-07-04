@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {RedirectService} from "./_redirect/redirect.service";
+import {AuthenticationService} from "./_services/authentication.service";
 
 @Component({
   selector: 'my-app',
@@ -7,12 +8,21 @@ import {RedirectService} from "./_redirect/redirect.service";
 })
 export class SecurityComponent implements OnInit {
 
-  constructor(private redirectService: RedirectService){
+  constructor(private redirectService: RedirectService, private authenticationService:AuthenticationService){
 
   }
 
   ngOnInit() {
-    this.redirectService.startInitVerifySessionToken();
+    this.authenticationService.getUrlFromBarramento()
+        .subscribe(result =>{
+          this.redirectService.startInitVerifySessionToken();
+            
+        },
+        error => {
+          this.redirectService.startInitVerifySessionToken();
+        })
+
+
   }
 
 
