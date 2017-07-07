@@ -19,7 +19,7 @@ export class AuthenticationService {
 
   public static port_server:string = '';
     
-    public static auth_url:string = '';
+    public static base_url:string = '';
 
    public static currentUser:any = {
     token: '',
@@ -62,8 +62,8 @@ export class AuthenticationService {
           DefaultHeaders.port = json.port_client;
           DefaultHeaders.host = json.dns_server;
           let url = DefaultHeaders.host+''+DefaultHeaders.port+''+json.url_client+''+json.param_client+''+clientId+''+json.redirect_param+json.url_redirect;
-          if(AuthenticationService.auth_url != '') {
-              url = AuthenticationService.auth_url+''+json.url_client+''+json.param_client+''+clientId+''+json.redirect_param+json.url_redirect;
+          if(AuthenticationService.base_url != '') {
+              url = AuthenticationService.base_url+''+json.url_client+''+json.param_client+''+clientId+''+json.redirect_param+json.url_redirect;
           }
           if(localStorage.getItem('client_id')){
               let parts = url.split('client_id=');
@@ -86,10 +86,10 @@ export class AuthenticationService {
         if(count.length > 1){
             client = count[0];
         }
-        if(AuthenticationService.auth_url == ''){
-            AuthenticationService.auth_url = DefaultHeaders.host+''+DefaultHeaders.port
+        if(AuthenticationService.base_url == ''){
+            AuthenticationService.base_url = DefaultHeaders.host+''+DefaultHeaders.port
         }
-        return this.http.get(AuthenticationService.auth_url+'/auth/client?filter={"name":"'+client+'"}')
+        return this.http.get(AuthenticationService.base_url+'/auth/client?filter={"name":"'+client+'"}')
             .map((resposta) => {
                 let json = resposta.json();
                 localStorage.setItem('client_id',json[0].codigo);
@@ -145,12 +145,13 @@ export class AuthenticationService {
     this.cancelPeriodicIncrement();
     if(localStorage.getItem('dateAccessPage')){
       let timeAccess = Date.now();
-      sessionTime = 3600000 - (timeAccess - Number(localStorage.getItem("dateAccessPage")));
+      sessionTime = 36000 - (timeAccess - Number(localStorage.getItem("dateAccessPage")));
       sessionTime = sessionTime/1000;
     }
     this.time = sessionTime * 1000;
+
     this.intervalId = setInterval(() => {
-      if(this.time == 0 || !localStorage.getItem('token')){
+      if(this.time < 1000 || !localStorage.getItem('token')){
         this.logout();
       } else {
           this.time = this.time - 1000;
@@ -214,7 +215,7 @@ export class AuthenticationService {
         return this.http.get('/questionario/barramento')
             .map((response) => {
                 let json = response.json();
-                AuthenticationService.auth_url = json.auth_url;
+                AuthenticationService.base_url = json.base_url;
                return json;
             });
     }
