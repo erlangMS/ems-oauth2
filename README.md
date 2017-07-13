@@ -1,168 +1,186 @@
-# angular-library-starter
-[![Build Status](https://travis-ci.org/robisim74/angular-library-starter.svg?branch=master)](https://travis-ci.org/robisim74/angular-library-starter)
->Build an Angular library compatible with AoT compilation &amp; Tree shaking.
+# Seguranca
 
-This starter allows you to create a library for **Angular 2+** apps written in _TypeScript_, _ES6_ or _ES5_. 
-The project is based on the official _Angular_ packages.
+This is a module for integrate angular2 aplications with  oauth2. 
 
-Get the [Changelog](https://github.com/robisim74/angular-library-starter/blob/master/CHANGELOG.md).
 
 ## Contents
-* [1 Project structure](#1)
-* [2 Customizing](#2)
-* [3 Testing](#3)
-* [4 Building](#4)
-* [5 Publishing](#5)
-* [6 Documentation](#6)
-* [7 Using the library](#7)
-* [8 What it is important to know](#8)
+* [1 Features](#1)
+* [2 File Config](#2)
+* [3 Future Features ](#3)
+* [4 How to use](#4)
+* [5 Contribute](#5)
 
-## <a name="1"></a>1 Project structure
-- Library:
-    - **src** folder for the classes
-    - **public_api.ts** entry point for all public APIs of the package
-    - **package.json** _npm_ options
-    - **rollup.config.js** _Rollup_ configuration for building the bundles
-    - **tsconfig-build.json** _ngc_ compiler options for _AoT compilation_
-    - **build.js** building process using _ShellJS_
-- Testing:
-    - **tests** folder for unit & integration tests
-    - **karma.conf.js** _Karma_ configuration that uses _webpack_ to build the tests
-    - **spec.bundle.js** defines the files used by _webpack_
-- Extra:
-    - **tslint.json** _TypeScript_ linter rules with _Codelyzer_
-    - **travis.yml** _Travis CI_ configuration
+## <a name="1"></a>1 Features
+- Oauth2:
+    - integrate with wathever server oauth2
+    - store token and send in header for server
+    - Generate dinamically url for backend
+    - Control ever header you need to pass for server in request
+    - Control response for server
+    - Control access for a page integrate with router
+    - Have a login and session time
 
-## <a name="2"></a>2 Customizing
-1. Update [Node & npm](https://docs.npmjs.com/getting-started/installing-node).
+## <a name="2"></a>2 File Config
+- Ever aplication can use this application creating a config.json file.
+This file has all configurations with seguranca module need.
+- this file look like this
+```json
+{
+  "url_client": "/authorize",
+  "param_client": "?response_type=code&client_id=",
+  "redirect_param": "&state=xyz%20&redirect_uri=",
+  "body_client":"",
+  "client_id": "168",
+  "client_secret":"CPD",
+  "url_redirect":"/questionario/index.html/",
+  "url_user": "/authorize?",
+  "login": "grant_type=password&username=",
+  "password": "&password=",
+  "body_user" : "",
+  "name_client":"questionario",
+  "find_user_client": "/authorize/",
+  "grant_type": "authorization_code",
+  "port_client":":2344",
+  "dns_server":"https://164.41.121.71",
+  "authorization":"Oauth2"
+}
 
-2. Rename `angular-library-starter` and `angularLibraryStarter` everywhere to `my-library` and `myLibrary`.
+```
+- Explain all parameters in config.json
+	- url_client: the url for authorization server
+	- param_client: params need for authorization server
+	- redirect_param: params need for redirect 
+	- body_client: If need to passa something in a payload
+	- client_id: id of a client
+	- client_secret: secret of a client
+	- url_redirect: url for redirect back, after autenticated, for aplication
+	- url_user: url for get code
+	- login: login when client authenticated
+	- password: params for password authenticated
+	- body_user: if need to pass something in payload 
+	- name_client: name of a aplication client
+	- find_user_client: find url /authorize/
+	- grant_type: grnat type for authorization
+	- port_client: port server for all requests
+	- dns_server: url for all requests
+	- authorizarion: optional for say what level of security (not working yet)
 
-3. Update in `package.json` file:
-    - version: [Semantic Versioning](http://semver.org/)
-    - description
-    - urls
-    - packages
 
-    and run `npm install`.
+##<a name="3"></a>3 Future Features
+	- Integrate seguranca with all languages
+	- Better integration
+	- Customize login and session time
 
-4. Create your classes in `src` folder, and export public classes in `my-library.ts`.
 
-5. You can create only one _module_ for the whole library: 
-I suggest you create different _modules_ for different functions, 
-so that the user can import only those he needs and optimize _Tree shaking_ of his app.
+## <a name="4"></a>4 How to use
+If need to integrate seguranca module with your application 
 
-6. Update in `rollup.config.js` file `globals` external dependencies with those that actually you use.
+1 - Create a config.json 
+```json
+{
+  "url_client": "/authorize",
+  "param_client": "?response_type=code&client_id=",
+  "redirect_param": "&state=xyz%20&redirect_uri=",
+  "body_client":"",
+  "client_id": "168",
+  "client_secret":"CPD",
+  "url_redirect":"/questionario/index.html/",
+  "url_user": "/authorize?",
+  "login": "grant_type=password&username=",
+  "password": "&password=",
+  "body_user" : "",
+  "name_client":"questionario",
+  "find_user_client": "/authorize/",
+  "grant_type": "authorization_code",
+  "port_client":":2344",
+  "dns_server":"https://164.41.121.71",
+  "authorization":"Oauth2"
+}
 
-7. Create unit & integration tests in `tests` folder, or unit tests next to the things they test in `src` folder, always using `.spec.ts` extension. 
-_Karma_ is configured to use _webpack_ only for `*.ts` files: if you need to test different formats, you have to update it.
+```
+2 - In app.module import and use this components and services
 
-## <a name="3"></a>3 Testing
-The following command run unit & integration tests that are in the `tests` folder, and unit tests that are in `src` folder: 
-```Shell
-npm test 
+```typescript
+
+import {AuthenticationService, AuthGuard, 
+		RedirectService, DefaultHeaders, 
+		NavigationComponent, DefaultResponse} from 'seguranca';
+
+
+@NgModule({ 
+  declarations: [ NavigationComponent ],
+  providers:    [AuthenticationService, AuthGuard, RedirectService,
+          {
+            provide: RequestOptions,
+            useClass: DefaultHeaders
+          },
+          {
+              provide: ResponseOptions,
+              useClass: DefaultResponse
+          }
+   ],
+  bootstrap:    [ AppComponent ]
+})
+export class AppModule { }
+
 ```
 
-## <a name="4"></a>4 Building
-The following command:
-```Shell
-npm run build
-```
-- starts _TSLint_ with _Codelyzer_
-- starts _AoT compilation_ using _ngc_ compiler
-- creates `dist` folder with all the files of distribution
+3 - create a folder _file and create a service file.service.ts
 
-> If bundles are not created, set _silent_ to false in the _build.js_ file to check what's going wrong: warnings on the first execution of _Rollup_ are normal, and also the errors on _Downleveling_ are a known issue.
+```typescript
 
-To test locally the npm package:
-```Shell
-npm run pack-lib
-```
-Then you can install it in an app to test it:
-```Shell
-npm install [path]my-library-[version].tgz
-```
 
-## <a name="5"></a>5 Publishing
-Before publishing the first time:
-- you can register your library on [Travis CI](https://travis-ci.org/): you have already configured `.travis.yml` file
-- you must have a user on the _npm_ registry: [Publishing npm packages](https://docs.npmjs.com/getting-started/publishing-npm-packages)
+import { Injectable } from '@angular/core';
+import { Http } from '@angular/http';
+import {RedirectService, DefaultHeaders} from 'seguranca';
+import 'rxjs/add/operator/map';
+import { Observable } from 'rxjs/Observable';
 
-```Shell
-npm run publish-lib
-```
 
-## <a name="6"></a>6 Documentation
-To generate the documentation, this starter uses [compodoc](https://github.com/compodoc/compodoc):
-```Shell
-npm run compodoc
-npm run compodoc-serve 
-```
+@Injectable()
+export class FileService extends DefaultHeaders {
 
-## <a name="7"></a>7 Using the library
-### Installing
-```Shell
-npm install my-library --save 
-```
-### Loading
-#### Using SystemJS configuration
-```JavaScript
-System.config({
-    map: {
-        'my-library': 'node_modules/my-library/bundles/my-library.umd.js'
+  constructor( private http: Http, private redirectService: RedirectService){
+    super();
+  }
+
+  startRedirect():Observable<boolean> {
+       return this.http.get('/questionario/assets/config.json')
+         .map((resultado) => {
+             var resposta = resultado.json();
+           let location  = window.location.href.split(':');
+           let port = location[2].split('/');
+             if(location[2]){
+                 localStorage.setItem('externalFile',(window.location.protocol+'//'+window.location.hostname+':'+port[0]+'/questionario/assets/config.json'));
+             }else {
+                 localStorage.setItem('externalFile',(window.location.protocol+'//'+window.location.hostname+'/questionario/assets/config.json'));
+
+             }
+             this.redirectService.startRedirectFromBarramento();
+           return true;
+         });
+     }
+
+    onlyRedirectService() {
+        this.redirectService.startInitVerifySessionToken();
     }
-});
+
+
+}
+
+Everthing has to be working for conect page login in server with this steps.
+
+
+## <a name="5"></a>5 Contribution
+For download and contribute with seguranca project only clone repository 
+and install dependency
+```Shell
+npm clone https://github.com/erlangMS/oauth2-client.git
+npm install  
 ```
-#### Angular-CLI
-No need to set up anything, just import it in your code.
-#### Rollup or webpack
-No need to set up anything, just import it in your code.
-#### Plain JavaScript
-Include the `umd` bundle in your `index.html`:
-```Html
-<script src="node_modules/my-library/bundles/my-library.umd.js"></script>
+For generate a library in dist folder run this comand
+```Shell
+npm run build  
 ```
-and use global `ng.myLibrary` namespace.
-
-### AoT compilation
-The library is compatible with _AoT compilation_.
-
-## <a name="8"></a>8 What it is important to know
-1. `package.json`
-
-    * `"main": "./bundles/angular-library-starter.umd.js"` legacy module format 
-    * `"module": "./bundles/angular-library-starter.es5.js"` flat _ES_ module, for using module bundlers such as _Rollup_ or _webpack_: 
-    [package module](https://github.com/rollup/rollup/wiki/pkg.module)
-    * `"es2015": "./bundles/angular-library-starter.js"` _ES2015_ flat _ESM_ format, experimental _ES2015_ build
-    * `"peerDependencies"` the packages and their versions required by the library when it will be installed
-
-2. `tsconfig.json` file used by _TypeScript_ compiler
-
-    * Compiler options:
-        * `"strict": true` enables _TypeScript_ `strict` master option
-
-3. `tsconfig-build.json` file used by _ngc_ compiler
-
-    * Compiler options:
-        * `"declaration": true` to emit _TypeScript_ declaration files
-        * `"module": "es2015"` & `"target": "es2015"` are used by _Rollup_ to create the _ES2015_ bundle
-
-    * Angular Compiler Options:
-        * `"skipTemplateCodegen": true,` skips generating _AoT_ files
-        * `"annotateForClosureCompiler": true` for compatibility with _Google Closure compiler_
-        * `"strictMetadataEmit": true` without emitting metadata files, the library will not compatible with _AoT compilation_
-
-4. `rollup.config.js` file used by _Rollup_
-
-    * `format: 'umd'` the _Universal Module Definition_ pattern is used by _Angular_ for its bundles
-    * `moduleName: 'ng.angularLibraryStarter'` defines the global namespace used by _JavaScript_ apps
-    * `external` & `globals` declare the external packages
-
-5. Server-side prerendering
-
-    If you want the library will be compatible with server-side prerendering:
-    * `window`, `document`, `navigator` and other browser types do not exist on the server
-    * don't manipulate the _nativeElement_ directly
-
 ## License
 MIT
