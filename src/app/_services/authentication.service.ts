@@ -145,7 +145,7 @@ export class AuthenticationService {
     this.cancelPeriodicIncrement();
     if(localStorage.getItem('dateAccessPage')){
       let timeAccess = Date.now();
-      sessionTime = 36000 - (timeAccess - Number(localStorage.getItem("dateAccessPage")));
+      sessionTime = 3600000 - (timeAccess - Number(localStorage.getItem("dateAccessPage")));
       sessionTime = sessionTime/1000;
     }
     this.time = sessionTime * 1000;
@@ -207,7 +207,10 @@ export class AuthenticationService {
     return this.http.post('/recurso','')
       .map((response) => {
         let resp = response.json();
-        localStorage.setItem('user',resp.resource_owner);
+        let user  = resp.resource_owner;
+        let tuples = user.split(',');
+        localStorage.setItem('user',tuples[0]);
+        localStorage.setItem('codigo',tuples[1]);
       });
   }
 
