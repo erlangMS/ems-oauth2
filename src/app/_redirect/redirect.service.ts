@@ -22,7 +22,6 @@ export class RedirectService implements OnDestroy {
         this.authenticationService.getUrlFromBarramento()
             .subscribe(result =>{
                     this.startInitVerifySessionToken();
-
                 },
                 error => {
                     this.startInitVerifySessionToken();

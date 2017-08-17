@@ -223,5 +223,21 @@ export class AuthenticationService {
             });
     }
 
+    getUrlFromConfig():Observable<any> {
+        let arquivo =  localStorage.getItem('externalFile');
+            if(arquivo != null) {
+                return this.http.get (arquivo)
+                    .map ((response:any) => {
+                        let json = response.json ();
+                        AuthenticationService.base_url = json.dns_server + '' + json.port_client;
+                        return json;
+                    });
+            } else {
+                return new Observable();
+            }
+}
+
+
+
 
 }

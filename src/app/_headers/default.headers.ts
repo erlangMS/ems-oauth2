@@ -19,6 +19,7 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
     }
 
     merge(options?: RequestOptionsArgs): RequestOptions {
+        let protocol:any[] = [''];
 		if(options != undefined){
 			options.headers = DefaultHeaders.headers;
         }
@@ -26,13 +27,20 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
       if(localStorage.getItem('token')) {
           DefaultHeaders.headers.delete('Authorization');
           DefaultHeaders.headers.append('Authorization', 'Bearer '+localStorage.getItem ('token'));
-          if (options != undefined && AuthenticationService.base_url == '') {
-              options.url = DefaultHeaders.host + '' + DefaultHeaders.port + '' + options.url;
-          } else if(options != undefined) {
-              options.url = AuthenticationService.base_url + '' + options.url;
+          if(options != undefined) {
+              if(options.url != undefined) {
+                  protocol = options.url.split (':');
+              }
           }
+          if(protocol != undefined) {
+              if (protocol[0] == 'http' || protocol[0] == 'https') {
 
-
+              } else if (options != undefined && AuthenticationService.base_url == '') {
+                  options.url = DefaultHeaders.host + '' + DefaultHeaders.port + '' + options.url;
+              } else if (options != undefined) {
+                  options.url = AuthenticationService.base_url + '' + options.url;
+              }
+          }
       }
 
       var result = super.merge(options);

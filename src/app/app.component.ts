@@ -21,8 +21,6 @@ export class SecurityComponent implements OnInit {
         error => {
           this.redirectService.startInitVerifySessionToken();
         })
-
-
   }
 
 
