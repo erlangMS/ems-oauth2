@@ -51,6 +51,10 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
     setHeaders(name: string, value: string) {
       DefaultHeaders.headers.append(name, value);
     }
+
+    removeHeader(name: string){
+        DefaultHeaders.headers.delete(name);
+    }
 }
 
 

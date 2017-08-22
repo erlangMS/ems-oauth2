@@ -89,10 +89,12 @@ export class AuthenticationService {
         if(AuthenticationService.base_url == ''){
             AuthenticationService.base_url = DefaultHeaders.host+''+DefaultHeaders.port
         }
+        DefaultHeaders.headers.append("Authorization", "Basic " + btoa("erlangms@unb.br:5outLag1"));
         return this.http.get(AuthenticationService.base_url+'/auth/client?filter={"name":"'+client+'"}')
             .map((resposta) => {
                 let json = resposta.json();
                 localStorage.setItem('client_id',json[0].codigo);
+                DefaultHeaders.headers.delete('Authorization');
                 return {code:json[0].codigo}
             });
 
@@ -207,10 +209,10 @@ export class AuthenticationService {
     return this.http.post('/recurso','')
       .map((response) => {
         let resp = response.json();
-        let user  = resp.resource_owner;
-        let tuples = user.split(',');
-        localStorage.setItem('user',tuples[0]);
-        localStorage.setItem('codigo',tuples[1]);
+        let login  = resp.resource_owner.login;
+        let idPessoa = resp.resource_owner.user_id;
+        localStorage.setItem('user',login);
+        localStorage.setItem('codigo',idPessoa);
       });
   }
 
