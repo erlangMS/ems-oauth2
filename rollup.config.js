@@ -1,4 +1,5 @@
 import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
 
 // Add here external dependencies that actually you use.
 const globals = {
@@ -15,7 +16,7 @@ export default {
     format: 'umd',
     exports: 'named',
     moduleName: 'ng.segucanra',
-    plugins: [resolve()],
+    plugins: [resolve(), commonjs()],
     external: Object.keys(globals),
     globals: globals,
     onwarn: () => { return }
