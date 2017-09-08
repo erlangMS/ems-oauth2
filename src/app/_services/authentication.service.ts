@@ -210,14 +210,17 @@ export class AuthenticationService {
       .map((response) => {
         let resp = response.json();
         let login  = resp.resource_owner.login;
-        let idPessoa = resp.resource_owner.user_id;
+        let idPessoa = resp.resource_owner.codigo;
         localStorage.setItem('user',login);
         localStorage.setItem('codigo',idPessoa);
       });
   }
 
     getUrlFromBarramento():Observable<any>{
-        return this.http.get('/questionario/barramento')
+        let url = window.location.href;
+        let array = url.split('/');
+        
+        return this.http.get(array[0]+'//'+array[2]+'/questionario/barramento')
             .map((response) => {
                 let json = response.json();
                 AuthenticationService.base_url = json.base_url;
