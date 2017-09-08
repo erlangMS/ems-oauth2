@@ -36,7 +36,7 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
               if (protocol[0] == 'http' || protocol[0] == 'https') {
 
               } else if (options != undefined && AuthenticationService.base_url == '') {
-                  options.url = DefaultHeaders.host + '' + DefaultHeaders.port + '' + options.url;
+                  options.url = DefaultHeaders.host + '' +  options.url;
               } else if (options != undefined) {
                   options.url = AuthenticationService.base_url + '' + options.url;
               }
