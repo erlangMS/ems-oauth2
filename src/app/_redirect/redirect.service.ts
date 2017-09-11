@@ -100,7 +100,7 @@ export class RedirectService implements OnDestroy {
                 let url_client = window.location.href;
                 let array = url_client.split ('/');
                 this.authenticationService.redirectUserTokenAccess(partUrl[0], localStorage.getItem('client_id'),'CPD',code,
-                    'client_credentials','/'+array[3]+'/index.html/' )
+                    'authorization_code','/'+array[3]+'/index.html/' )
                     .subscribe(resultado => {
                         this.authenticationService.findUser()
                             .subscribe(result => {
