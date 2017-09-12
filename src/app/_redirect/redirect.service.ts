@@ -39,7 +39,7 @@ export class RedirectService implements OnDestroy {
         }
 
         if (localStorage.getItem ('token')) {
-            this.authenticationService.getUrl('/seguranca/url_security.json')
+            this.authenticationService.getUrl()
                 .subscribe(resultado =>{
                     this.authenticationService.periodicIncrement(3600);
                     AuthenticationService.currentUser.token = localStorage.getItem ('token');
@@ -50,16 +50,16 @@ export class RedirectService implements OnDestroy {
             this.verifyTimeTokenExpired ();
         }
 
-        var client_id = window.location.href.split ('code=')[1];
+        var code = window.location.href.split ('code=')[1];
 
-        if (client_id == undefined) {
+        if (code == undefined) {
             if (AuthenticationService.currentUser.token == '') {
                 this.initVerificationRedirect ();
             } else {
                 this.authenticationService.periodicIncrement (3600);
             }
-        } else if (AuthenticationService.currentUser.token == '' && client_id != undefined) {
-            this.redirectWithCodeUrl (client_id);
+        } else if (AuthenticationService.currentUser.token == '' && code != undefined) {
+            this.redirectWithCodeUrl (code);
         }
 
     }
@@ -93,12 +93,14 @@ export class RedirectService implements OnDestroy {
     }
 
     private redirectWithCodeUrl(code:string) {
-        this.authenticationService.getUrl('/seguranca/url_security.json')
+        this.authenticationService.getUrl()
             .subscribe(resultado =>{
                 var url = resultado.url;
-                var partUrl = url.split('?')
-                this.authenticationService.redirectUserTokenAccess(partUrl[0], localStorage.getItem('client_id'), resultado.client_secret,code,
-                    resultado.grant_type, resultado.url_redirect)
+                var partUrl = url.split('?');
+                let url_client = window.location.href;
+                let array = url_client.split ('/');
+                this.authenticationService.redirectUserTokenAccess(partUrl[0], localStorage.getItem('client_id'),'CPD',code,
+                    'authorization_code','/'+array[3]+'/index.html/' )
                     .subscribe(resultado => {
                         this.authenticationService.findUser()
                             .subscribe(result => {
@@ -110,7 +112,7 @@ export class RedirectService implements OnDestroy {
     private authenticateClient(){
         if(!localStorage.getItem('token')) {
             this.authenticationService.reset();
-            this.authenticationService.getUrl('/seguranca/url_security.json')
+            this.authenticationService.getUrl()
                 .subscribe (resultado => {
                     let urlName = window.location.href.split('/');
                     this.authenticationService.getClientCode(urlName[3])
@@ -125,7 +127,7 @@ export class RedirectService implements OnDestroy {
                         })
                 });
         } else {
-            this.authenticationService.getUrl('/seguranca/url_security.json')
+            this.authenticationService.getUrl()
                 .subscribe (resultado => {
                     var url = resultado.url;
                     if (resultado.store == 'variable') {

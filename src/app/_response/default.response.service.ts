@@ -21,11 +21,11 @@ export class DefaultResponse extends ResponseOptions  implements OnInit {
             }
         }
 
-     /* if(verify == '{"error":"access_denied"}'){
+      if(verify == '{"error":"access_denied"}'){
             localStorage.removeItem('token');
             localStorage.removeItem("dateAccessPage");
             localStorage.removeItem('user');
-        }*/
+        }
 
         var result = super.merge(options);
         result.merge = this.merge;
