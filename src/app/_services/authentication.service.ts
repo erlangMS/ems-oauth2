@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Http , Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { Router } from "@angular/router";
 import 'rxjs/add/operator/map';
 import {DefaultHeaders} from "../_headers/default.headers";
 
@@ -29,7 +28,7 @@ export class AuthenticationService {
     password: ''
   }
 
-  constructor(private http: Http, private route: Router) {
+  constructor(private http: Http) {
   
   }
 
@@ -163,7 +162,7 @@ export class AuthenticationService {
 
   };
 
-  cancelPeriodicIncrement(): void {
+   cancelPeriodicIncrement(): void {
     if (this.intervalId != null) {
       clearInterval(this.intervalId);
       this.intervalId = null;
@@ -217,6 +216,7 @@ export class AuthenticationService {
   }
 
     getUrlFromBarramento():Observable<any>{
+        
         return this.http.get('/questionario/barramento')
             .map((response) => {
                 let json = response.json();
