@@ -1,0 +1,1 @@
+{"ip":"164.41.121.71","http_port":2350,"https_port":2344,"base_url":"https://164.41.121.71:2344","auth_url":"https://164.41.121.71:2344/authorize","auth_protocol":"auth2","app":"questionario","version":"","environment":"homologaservicos","docker_version":"17.03.2"}

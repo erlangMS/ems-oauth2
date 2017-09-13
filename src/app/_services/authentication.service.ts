@@ -1,7 +1,6 @@
 import {Injectable} from '@angular/core';
-import {Http, Response} from '@angular/http';
+import {Http} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
-import {Router} from "@angular/router";
 import 'rxjs/add/operator/map';
 import {DefaultHeaders} from "../_headers/default.headers";
 
@@ -29,11 +28,11 @@ export class AuthenticationService {
         password: ''
     }
 
-    constructor (private http:Http, private route:Router) {
+    constructor (private http:Http) {
 
     }
 
-    login (url:string, body:string, authorization:string):Observable<boolean> {
+    /*login (url:string, body:string, authorization:string):Observable<boolean> {
         return this.http.post (url, body)
             .map ((response) => {
                 let token = response.json ();
@@ -46,7 +45,7 @@ export class AuthenticationService {
                     return false;
                 }
             });
-    }
+    }*/
 
 
     getUrl ():Observable<any> {
@@ -58,15 +57,6 @@ export class AuthenticationService {
                 let clientId = json.client_id;
                 DefaultHeaders.host = json.base_url;
                 let url =  json.auth_url + '?response_type=code&client_id=' + localStorage.getItem('client_id') + '&state=xyz%20&redirect_uri='+'/'+ array[3]+"/index.html/";
-                /*if (AuthenticationService.base_url != '') {
-                    url = AuthenticationService.base_url + '' + json.url_client + '' + json.param_client + '' + clientId + '' + json.redirect_param + json.url_redirect;
-                }
-                if (localStorage.getItem ('client_id')) {
-                    let parts = url.split ('client_id=');
-                    let number = parts[1].split ('&');
-                    url = parts[0] + 'client_id=' + localStorage.getItem ('client_id') + '&' + number[1] + '&' + number[2];
-
-                }*/
                 let body = json.body_client;
                 AuthenticationService.client_secret = json.client_secret;
                 let authorization = json.authorization;
@@ -100,6 +90,7 @@ export class AuthenticationService {
         DefaultHeaders.headers.append ("Authorization", "Basic " + btoa ("erlangms@unb.br:5outLag1"));
         return this.http.get (AuthenticationService.base_url + '/auth/client?filter={"name":"' + client + '"}')
             .map ((resposta) => {
+                alert("Resposta interna apagar >>>> "+resposta);
                 let json = resposta.json ();
                 localStorage.setItem ('client_id', json[0].codigo);
                 DefaultHeaders.headers.delete ('Authorization');
