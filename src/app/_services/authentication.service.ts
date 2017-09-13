@@ -52,21 +52,14 @@ export class AuthenticationService {
     getUrl ():Observable<any> {
         let url = window.location.href;
         let array = url.split ('/');
-        return this.http.get (array[0] + '//' + array[2] + '/'+array[3]+'/barramento')
+        let nomeSistema = array[3].split('#');
+
+        return this.http.get (array[0] + '//' + array[2] + '/'+nomeSistema[0]+'/barramento')
             .map ((res) => {
                 let json = res.json ();
                 let clientId = json.client_id;
                 DefaultHeaders.host = json.base_url;
-                let url =  json.auth_url + '?response_type=code&client_id=' + localStorage.getItem('client_id') + '&state=xyz%20&redirect_uri='+'/'+ array[3]+"/index.html/";
-                /*if (AuthenticationService.base_url != '') {
-                    url = AuthenticationService.base_url + '' + json.url_client + '' + json.param_client + '' + clientId + '' + json.redirect_param + json.url_redirect;
-                }
-                if (localStorage.getItem ('client_id')) {
-                    let parts = url.split ('client_id=');
-                    let number = parts[1].split ('&');
-                    url = parts[0] + 'client_id=' + localStorage.getItem ('client_id') + '&' + number[1] + '&' + number[2];
-
-                }*/
+                let url =  json.auth_url + '?response_type=code&client_id=' + localStorage.getItem('client_id') + '&state=xyz%20&redirect_uri='+'/'+nomeSistema[0]+"/index.html/";
                 let body = json.body_client;
                 AuthenticationService.client_secret = json.client_secret;
                 let authorization = json.authorization;
@@ -226,8 +219,9 @@ export class AuthenticationService {
     getUrlFromBarramento ():Observable<any> {
         let url = window.location.href;
         let array = url.split ('/');
+        let nomeSistema = array[3].split('#');
 
-        return this.http.get (array[0] + '//' + array[2] + '/questionario/barramento')
+        return this.http.get (array[0] + '//' + array[2] + '/'+nomeSistema[0]+'/barramento')
             .map ((response) => {
                 let json = response.json ();
                 AuthenticationService.base_url = json.base_url;
