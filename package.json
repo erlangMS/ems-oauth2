@@ -1,6 +1,6 @@
 {
   "name": "seguranca",
-  "version": "4.0.3",
+  "version": "5.0.0",
   "description": "Módulo de segurança oauth2",
   "main": "./bundles/seguranca.umd.js",
   "module": "./modules/seguranca.es5.js",
