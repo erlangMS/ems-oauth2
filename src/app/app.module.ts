@@ -6,39 +6,25 @@ import {HashLocationStrategy, LocationStrategy} from '@angular/common';
 
 
 import { SecurityComponent } from './app.component';
-import { NavigationComponent } from './navigation/navigation.component';
 import {AuthGuard} from "./_guards/auth.guard";
 import {AuthenticationService} from "./_services/authentication.service";
 import {UserService} from "./_services/user.service";
-import {RodapeComponent} from "./rodape/rodape.component";
 import {DefaultHeaders} from "./_headers/default.headers";
-import {HomeModule} from "./home/home.module";
-import {FormModule} from "./form/form.module";
-import {PessoaModule} from "./pessoa/pessoa.module";
-import {ErroModule} from "./erro/erro.module";
-import {QuestaoModule} from "./questao/questao.module";
-import {routing} from "./app.routing";
 import {CookieService} from "./_cookie/cookie.service";
 import {RedirectService} from "./_redirect/redirect.service";
 import {DefaultResponse} from "./_response/default.response.service";
+import { NavigationComponent } from './navigation/navigation.component';
 
 
 @NgModule({
   declarations: [
     SecurityComponent,
-    NavigationComponent,
-    RodapeComponent
+    NavigationComponent
   ],
   imports: [
     HttpModule,
     BrowserModule,
-    FormsModule,
-    HomeModule,
-    FormModule,
-    PessoaModule,
-    ErroModule,
-    QuestaoModule,
-    routing
+    FormsModule
   ],
   providers: [AuthGuard, AuthenticationService,UserService, CookieService, RedirectService,
     {

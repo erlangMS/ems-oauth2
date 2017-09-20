@@ -1,33 +1,26 @@
 import {Location} from '@angular/common';
 import { Injectable, OnDestroy } from '@angular/core';
 import {AuthenticationService} from "../_services/authentication.service";
+import {Observable} from 'rxjs/Observable';
 
 @Injectable()
 export class RedirectService implements OnDestroy {
 
-    public location: Location;
-
     public timeSession: number = 3600;
-
     public localDateTime: number;
+    private auth_url:string = '';
 
-    private error:string = '';
-
-    constructor(private authenticationService: AuthenticationService, private loc: Location){
-        this.location = loc;
+    constructor(private authenticationService: AuthenticationService){
     }
-
 
     startRedirectFromBarramento(){
-        this.authenticationService.getUrlFromBarramento()
+        this.authenticationService.getUrl()
             .subscribe(result =>{
+                    this.auth_url= result.url;
                     this.startInitVerifySessionToken();
-                },
-                error => {
-                    this.startInitVerifySessionToken();
-                })
-    }
+                });
 
+    }
 
     startInitVerifySessionToken() {
         if(localStorage.getItem("token") && localStorage.getItem("dataAccessPage")){
@@ -39,11 +32,9 @@ export class RedirectService implements OnDestroy {
         }
 
         if (localStorage.getItem ('token')) {
-            this.authenticationService.getUrl()
-                .subscribe(resultado =>{
-                    this.authenticationService.periodicIncrement(3600);
-                    AuthenticationService.currentUser.token = localStorage.getItem ('token');
-                });
+              this.authenticationService.periodicIncrement(3600);
+              AuthenticationService.currentUser.token = localStorage.getItem ('token');
+
         }
 
         if (localStorage.getItem ("dateAccessPage") && AuthenticationService.currentUser.token != "") {
@@ -93,48 +84,29 @@ export class RedirectService implements OnDestroy {
     }
 
     private redirectWithCodeUrl(code:string) {
-        this.authenticationService.getUrl()
-            .subscribe(resultado =>{
-                var url = resultado.url;
-                var partUrl = url.split('?');
-                let url_client = window.location.href;
-                let array = url_client.split ('/');
-                let nomeSistema = array[3].split('#');
-                this.authenticationService.redirectUserTokenAccess(partUrl[0], localStorage.getItem('client_id'),'CPD',code,
-                    'authorization_code','/'+nomeSistema[0]+'/index.html/' )
-                    .subscribe(resultado => {
-                        this.authenticationService.findUser()
-                            .subscribe(result => {
-                            });
-                    })
-            });
+          let url_client = window.location.href;
+          let array = url_client.split ('/');
+          let nomeSistema = array[3].split('#');
+          let base_auth = this.auth_url.split('?')
+          this.authenticationService.redirectUserTokenAccess(base_auth[0], localStorage.getItem('client_id'),'CPD',code,
+              'authorization_code','/'+nomeSistema[0]+'/index.html/' )
+            .subscribe(resultado => {
+                  this.authenticationService.findUser()
+                      .subscribe(result => {
+                      });
+            })
     }
 
     private authenticateClient(){
         if(!localStorage.getItem('token')) {
             this.authenticationService.reset();
-            this.authenticationService.getUrl()
-                .subscribe (resultado => {
-                    let urlName = window.location.href.split('/');
-                    this.authenticationService.getClientCode(urlName[3])
-                        .subscribe(res => {
-                            if (res.code) {
-                                resultado.client_id = res.code;
-                                let parts = resultado.url.split('client_id=');
-                                let number = parts[1].split('&');
-                                resultado.url = parts[0]+'client_id='+res.code+'&'+number[1]+'&'+number[2];
-                            }
-                            window.location.href = resultado.url;
-                        })
-                });
-        } else {
-            this.authenticationService.getUrl()
-                .subscribe (resultado => {
-                    var url = resultado.url;
-                    if (resultado.store == 'variable') {
-                        AuthenticationService.currentUser.authorization = resultado.authorization;
-                    }
-                });
+              let urlName = window.location.href.split('/');
+              this.authenticationService.getClientCode(urlName[3])
+                  .subscribe(res => {
+                       let parts =this.auth_url.split('client_id=');
+                       let number = parts[1].split('&');
+                      window.location.href = parts[0]+'client_id='+res.code+'&'+number[1]+'&'+number[2];
+                  });
         }
     }
 

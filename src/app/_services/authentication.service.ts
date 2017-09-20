@@ -8,18 +8,11 @@ import {DefaultHeaders} from "../_headers/default.headers";
 @Injectable ()
 export class AuthenticationService {
 
-    public token:any;
-
     public time:number = 0;
     intervalId:any = null;
-
     static client_secret:string = "";
-
-
     public static port_server:string = '';
-
     public static base_url:string = '';
-
     public static currentUser:any = {
         token: '',
         login: '',
@@ -32,22 +25,6 @@ export class AuthenticationService {
 
     }
 
-    /*login (url:string, body:string, authorization:string):Observable<boolean> {
-        return this.http.post (url, body)
-            .map ((response) => {
-                let token = response.json ();
-                if (token) {
-                    this.token = token;
-                    localStorage.setItem ('currentUser', JSON.stringify (response.json ()));
-                    this.periodicIncrement (3600);
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-    }*/
-
-
     getUrl ():Observable<any> {
         let url = window.location.href;
         let array = url.split ('/');
@@ -55,30 +32,12 @@ export class AuthenticationService {
         return this.http.get (array[0] + '//' + array[2] + '/'+nomeSistema[0]+'/barramento')
             .map ((res) => {
                 let json = res.json ();
-                let clientId = json.client_id;
+                AuthenticationService.base_url = json.base_url;
                 DefaultHeaders.host = json.base_url;
                 let url =  json.auth_url + '?response_type=code&client_id=' + localStorage.getItem('client_id') + '&state=xyz%20&redirect_uri='+'/'+nomeSistema[0]+"/index.html/";
-                let body = json.body_client;
-                AuthenticationService.client_secret = json.client_secret;
-                let authorization = json.authorization;
-                let store = json.store;
-
-
-                return {
-                    url: url,
-                    body: body,
-                    authorization: authorization,
-                    store: store,
-                    client_id: json.client_id,
-                    client_secret: json.client_secret,
-                    grant_type: json.grant_type,
-                    url_redirect: json.url_redirect,
-                    port_client: json.port_client
-                };
-
+                return {url: url};
             });
     }
-
 
     getClientCode (client:string):Observable<any> {
         let count:string[] = client.split ("#");
@@ -91,7 +50,6 @@ export class AuthenticationService {
         DefaultHeaders.headers.append ("Authorization", "Basic " + btoa ("erlangms@unb.br:5outLag1"));
         return this.http.get (AuthenticationService.base_url + '/auth/client?filter={"name":"' + client + '"}')
             .map ((resposta) => {
-                alert("Resposta interna apagar >>>> "+resposta);
                 let json = resposta.json ();
                 localStorage.setItem ('client_id', json[0].codigo);
                 DefaultHeaders.headers.delete ('Authorization');
@@ -126,7 +84,7 @@ export class AuthenticationService {
     }
 
 
-    getUrlForDirectLogin (login:string, senha:string, arquivo:string) {
+    getUrlForDirectLogin (login:string, senha:string, arquivo:string):Observable<any> {
         let arquivoExterno = localStorage.getItem ('externalFile');
         if (arquivoExterno) {
             arquivo = arquivoExterno;
@@ -172,16 +130,12 @@ export class AuthenticationService {
 
     logout ():void {
         this.cancelPeriodicIncrement ();
-        this.token = null;
         localStorage.removeItem ('token');
         localStorage.removeItem ("dateAccessPage");
         localStorage.removeItem ('user');
         AuthenticationService.currentUser = {
             token: '',
-            login: '',
-            authorization: '',
-            time: '',
-            password: ''
+            authorization: ''
         }
         this.getUrl ()
             .subscribe (resultado => {
@@ -191,20 +145,17 @@ export class AuthenticationService {
 
     reset ():void {
         this.cancelPeriodicIncrement ();
-        this.token = null;
         localStorage.removeItem ('token');
         localStorage.removeItem ("dateAccessPage");
         localStorage.removeItem ('user');
         AuthenticationService.currentUser = {
             token: '',
-            login: '',
-            authorization: '',
-            time: '',
-            password: ''
+            authorization: ''
+
         }
     }
 
-    findUser () {
+    findUser ():Observable<any> {
         return this.http.post ('/recurso', '')
             .map ((response) => {
                 let resp = response.json ();
@@ -214,33 +165,5 @@ export class AuthenticationService {
                 localStorage.setItem ('codigo', idPessoa);
             });
     }
-
-    getUrlFromBarramento ():Observable<any> {
-        let url = window.location.href;
-        let array = url.split ('/');
-        let nomeSistema = array[3].split('#');
-
-        return this.http.get (array[0] + '//' + array[2] + '/'+nomeSistema[0]+'/barramento')
-            .map ((response) => {
-                let json = response.json ();
-                AuthenticationService.base_url = json.base_url;
-                return json;
-            });
-    }
-
-    getUrlFromConfig ():Observable<any> {
-        let arquivo = localStorage.getItem ('externalFile');
-        if (arquivo != null) {
-            return this.http.get (arquivo)
-                .map ((response:any) => {
-                    let json = response.json ();
-                    AuthenticationService.base_url = json.dns_server + '' + json.port_client;
-                    return json;
-                });
-        } else {
-            return new Observable ();
-        }
-    }
-
 
 }
