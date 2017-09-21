@@ -19,10 +19,11 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
     }
 
     merge(options?: RequestOptionsArgs): RequestOptions {
-        let protocol:any[] = [''];
-		if(options != undefined){
-			options.headers = DefaultHeaders.headers;
-        }
+      let protocol:any[] = [''];
+
+    	if(options != undefined){
+    			options.headers = DefaultHeaders.headers;
+      }
 
       if(localStorage.getItem('token')) {
           DefaultHeaders.headers.delete('Authorization');
@@ -56,5 +57,3 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
         DefaultHeaders.headers.delete(name);
     }
 }
-
-

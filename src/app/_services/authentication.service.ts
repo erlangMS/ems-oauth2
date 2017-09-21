@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, OnInit} from '@angular/core';
 import {Http} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
@@ -6,7 +6,7 @@ import {DefaultHeaders} from "../_headers/default.headers";
 
 
 @Injectable ()
-export class AuthenticationService {
+export class AuthenticationService implements OnInit {
 
     public time:number = 0;
     intervalId:any = null;
@@ -23,6 +23,16 @@ export class AuthenticationService {
 
     constructor (private http:Http) {
 
+    }
+
+    ngOnInit(){
+      this.findUser()
+        .subscribe(result =>{
+
+        },
+      error=> {
+        this.logout();
+      })
     }
 
     getUrl ():Observable<any> {
@@ -69,9 +79,9 @@ export class AuthenticationService {
             redirect_uri: redirect_uri,
             grant_type: grant_type
         }
-
-
-        return this.http.post (url + '?grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri, JSON.stringify (obj))
+        DefaultHeaders.headers.delete ('content-type');
+        DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
+        return this.http.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
             .map ((resposta) => {
                 var resp = resposta.json ();
                 AuthenticationService.currentUser.token = resp.access_token;
@@ -79,23 +89,9 @@ export class AuthenticationService {
                 this.periodicIncrement (3600);
                 let localDateTime = Date.now ();
                 localStorage.setItem ("dateAccessPage", localDateTime.toString ());
+                DefaultHeaders.headers.delete ('content-type');
+                DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
                 return true;
-            });
-    }
-
-
-    getUrlForDirectLogin (login:string, senha:string, arquivo:string):Observable<any> {
-        let arquivoExterno = localStorage.getItem ('externalFile');
-        if (arquivoExterno) {
-            arquivo = arquivoExterno;
-        }
-        return this.http.get (arquivo)
-            .map ((res) => {
-                var json = res.json ();
-                let url = json.url_user + '' + json.login + '' + login + '' + json.password + '' + senha;
-                let body = json.body_user;
-                let authorization = json.authorization;
-                return {url: url, body: body, authorization: authorization};
             });
     }
 
