@@ -11,14 +11,12 @@ export class AuthenticationService implements OnInit {
     public time:number = 0;
     intervalId:any = null;
     static client_secret:string = "";
+    public static contentLogger:string = "";
     public static port_server:string = '';
     public static base_url:string = '';
     public static currentUser:any = {
         token: '',
-        login: '',
-        authorization: '',
-        time: '',
-        password: ''
+        authorization: ''
     }
 
     constructor (private http:Http) {
@@ -37,14 +35,17 @@ export class AuthenticationService implements OnInit {
 
     getUrl ():Observable<any> {
         let url = window.location.href;
+        AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() url = '+url+'\n';
         let array = url.split ('/');
         let nomeSistema = array[3].split('#');
+        AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() nomeSistema = '+nomeSistema+'\n';
         return this.http.get (array[0] + '//' + array[2] + '/'+nomeSistema[0]+'/barramento')
             .map ((res) => {
                 let json = res.json ();
                 AuthenticationService.base_url = json.base_url;
                 DefaultHeaders.host = json.base_url;
                 let url =  json.auth_url + '?response_type=code&client_id=' + localStorage.getItem('client_id') + '&state=xyz%20&redirect_uri='+'/'+nomeSistema[0]+"/index.html/";
+                AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() url = '+url+'\n';
                 return {url: url};
             });
     }
@@ -81,10 +82,12 @@ export class AuthenticationService implements OnInit {
         }
         DefaultHeaders.headers.delete ('content-type');
         DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
+        AuthenticationService.contentLogger += 'oauth2-client AuthenticationService redirectUserTokenAccess() before return http.post \n';
         return this.http.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
             .map ((resposta) => {
                 var resp = resposta.json ();
                 AuthenticationService.currentUser.token = resp.access_token;
+                AuthenticationService.contentLogger += 'oauth2-client AuthenticationService redirectUserTokenAccess() resp.access_token'+resp.access_token+'\n';
                 localStorage.setItem ('token', AuthenticationService.currentUser.token);
                 this.periodicIncrement (3600);
                 let localDateTime = Date.now ();
@@ -152,11 +155,14 @@ export class AuthenticationService implements OnInit {
     }
 
     findUser ():Observable<any> {
+      AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() before return http.post \n';
         return this.http.post ('/recurso', '')
             .map ((response) => {
                 let resp = response.json ();
                 let login = resp.resource_owner.login;
+                AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() login = '+login+'\n';
                 let idPessoa = resp.resource_owner.codigo;
+                AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() idPessoa = '+idPessoa+'\n';
                 localStorage.setItem ('user', login);
                 localStorage.setItem ('codigo', idPessoa);
             });
