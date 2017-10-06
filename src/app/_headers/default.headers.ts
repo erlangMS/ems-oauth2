@@ -25,9 +25,9 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
     			options.headers = DefaultHeaders.headers;
       }
 
-      if(localStorage.getItem('token')) {
+      if(AuthenticationService.currentUser.token != '') {
           DefaultHeaders.headers.delete('Authorization');
-          DefaultHeaders.headers.append('Authorization', 'Bearer '+localStorage.getItem ('token'));
+          DefaultHeaders.headers.append('Authorization', 'Bearer '+AuthenticationService.currentUser.token);
           if(options != undefined) {
               if(options.url != undefined) {
                   protocol = options.url.split (':');

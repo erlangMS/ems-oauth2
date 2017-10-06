@@ -16,7 +16,9 @@ export class AuthenticationService implements OnInit {
     public static base_url:string = '';
     public static currentUser:any = {
         token: '',
-        authorization: ''
+        user: '',
+        client_id: '',
+        codigo: ''
     }
 
     constructor (private http:Http) {
@@ -39,6 +41,9 @@ export class AuthenticationService implements OnInit {
         let array = url.split ('/');
         let nomeSistema = array[3].split('#');
         AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() nomeSistema = '+nomeSistema+'\n';
+        if(!localStorage.getItem('client_id')) {
+          localStorage.setItem('client_id',AuthenticationService.currentUser.client_id);
+        }
         return this.http.get (array[0] + '//' + array[2] + '/'+nomeSistema[0]+'/barramento')
             .map ((res) => {
                 let json = res.json ();
@@ -109,7 +114,7 @@ export class AuthenticationService implements OnInit {
         this.time = sessionTime * 1000;
 
         this.intervalId = setInterval (() => {
-            if (this.time < 1000 || !localStorage.getItem ('token')) {
+            if (this.time < 1000 || AuthenticationService.currentUser.token == '') {
                 this.logout ();
             } else {
                 this.time = this.time - 1000;
@@ -129,12 +134,12 @@ export class AuthenticationService implements OnInit {
 
     logout ():void {
         this.cancelPeriodicIncrement ();
-        localStorage.removeItem ('token');
         localStorage.removeItem ("dateAccessPage");
-        localStorage.removeItem ('user');
         AuthenticationService.currentUser = {
             token: '',
-            authorization: ''
+            user: '',
+            client_id: AuthenticationService.currentUser.client_id,
+            codigo: ''
         }
         this.getUrl ()
             .subscribe (resultado => {
@@ -149,8 +154,9 @@ export class AuthenticationService implements OnInit {
         localStorage.removeItem ('user');
         AuthenticationService.currentUser = {
             token: '',
-            authorization: ''
-
+            user: '',
+            client_id: AuthenticationService.currentUser.client_id,
+            codigo: ''
         }
     }
 
