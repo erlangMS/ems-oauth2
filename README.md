@@ -20,81 +20,59 @@ This is a module for integrate angular2 aplications with  oauth2.
     - Control access for a page integrate with router
     - Have a login and session time
 
-## <a name="2"></a>2 File Config
-- Ever aplication can use this application creating a config.json file.
+## <a name="2"></a>2 File Barramento
+- Ever aplication can use this application creating a barramento file.
 This file has all configurations with seguranca module need.
 - this file look like this
 ```json
 {
-  "url_client": "/authorize",
-  "param_client": "?response_type=code&client_id=",
-  "redirect_param": "&state=xyz%20&redirect_uri=",
-  "body_client":"",
-  "client_id": "168",
-  "client_secret":"CPD",
-  "url_redirect":"/questionario/index.html/",
-  "url_user": "/authorize?",
-  "login": "grant_type=password&username=",
-  "password": "&password=",
-  "body_user" : "",
-  "name_client":"questionario",
-  "find_user_client": "/authorize/",
-  "grant_type": "authorization_code",
-  "port_client":":2344",
-  "dns_server":"https://164.41.121.71",
-  "authorization":"Oauth2"
+	"ip": "164.41.121.71",
+	"http_port": 2301,
+	"https_port": 2344,
+	"base_url": "http://164.41.121.71:2301",
+	"auth_url": "http://164.41.121.71:2301/authorize",
+	"auth_protocol": "auth2",
+	"app": "questionario",
+	"version": "",
+	"environment": "homologaservicos",
+	"docker_version": "17.03.2"
 }
 
 ```
 - Explain all parameters in config.json
-	- url_client: the url for authorization server
-	- param_client: params need for authorization server
-	- redirect_param: params need for redirect 
+	- ip: ip of a server oauth2
+	- http_port: port http of a server oauth2
+	- https_port: port https of a server oauth2
 	- body_client: If need to passa something in a payload
-	- client_id: id of a client
-	- client_secret: secret of a client
-	- url_redirect: url for redirect back, after autenticated, for aplication
-	- url_user: url for get code
-	- login: login when client authenticated
-	- password: params for password authenticated
-	- body_user: if need to pass something in payload 
-	- name_client: name of a aplication client
-	- find_user_client: find url /authorize/
-	- grant_type: grnat type for authorization
-	- port_client: port server for all requests
-	- dns_server: url for all requests
-	- authorizarion: optional for say what level of security (not working yet)
+	- base_url: url base for request services after authenticate in server
+	- auth_url: url authorization of a server oauth2
+	- auth_protocol: type of protocol ("basic", "oauth2"). At hte moment only eork with oauth2
+	- app: application name
+	- version: application version
+	- version: params for password authenticated
+	- environment: if the application in porduction, developer, test, ect.
+	- docker_version: if you put a application in docker need to inform version of docker
 
 
 ##<a name="3"></a>3 Future Features
 	- Integrate seguranca with all languages
-	- Better integration
-	- Customize login and session time
-
 
 ## <a name="4"></a>4 How to use
 If need to integrate seguranca module with your application 
 
-1 - Create a config.json 
+1 - Create a folder inside src folder with name of application. Inside this folder create a file nam barramento 
 ```json
 {
-  "url_client": "/authorize",
-  "param_client": "?response_type=code&client_id=",
-  "redirect_param": "&state=xyz%20&redirect_uri=",
-  "body_client":"",
-  "client_id": "168",
-  "client_secret":"CPD",
-  "url_redirect":"/questionario/index.html/",
-  "url_user": "/authorize?",
-  "login": "grant_type=password&username=",
-  "password": "&password=",
-  "body_user" : "",
-  "name_client":"questionario",
-  "find_user_client": "/authorize/",
-  "grant_type": "authorization_code",
-  "port_client":":2344",
-  "dns_server":"https://164.41.121.71",
-  "authorization":"Oauth2"
+	"ip": "164.41.121.71",
+	"http_port": 2301,
+	"https_port": 2344,
+	"base_url": "http://164.41.121.71:2301",
+	"auth_url": "http://164.41.121.71:2301/authorize",
+	"auth_protocol": "auth2",
+	"app": "questionario",
+	"version": "",
+	"environment": "homologaservicos",
+	"docker_version": "17.03.2"
 }
 
 ```
@@ -104,12 +82,12 @@ If need to integrate seguranca module with your application
 
 import {AuthenticationService, AuthGuard, 
 		RedirectService, DefaultHeaders, 
-		NavigationComponent, DefaultResponse} from 'seguranca';
+		NavigationComponent, DefaultResponse, LoggerService} from 'seguranca';
 
 
 @NgModule({ 
   declarations: [ NavigationComponent ],
-  providers:    [AuthenticationService, AuthGuard, RedirectService,
+  providers:    [AuthenticationService, AuthGuard, RedirectService, LoggerService,
           {
             provide: RequestOptions,
             useClass: DefaultHeaders
@@ -129,7 +107,6 @@ export class AppModule { }
 
 ```typescript
 
-
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
 import {RedirectService, DefaultHeaders} from 'seguranca';
@@ -145,28 +122,16 @@ export class FileService extends DefaultHeaders {
   }
 
   startRedirect():Observable<boolean> {
-       return this.http.get('/questionario/assets/config.json')
-         .map((resultado) => {
-             var resposta = resultado.json();
-           let location  = window.location.href.split(':');
-           let port = location[2].split('/');
-             if(location[2]){
-                 localStorage.setItem('externalFile',(window.location.protocol+'//'+window.location.hostname+':'+port[0]+'/questionario/assets/config.json'));
-             }else {
-                 localStorage.setItem('externalFile',(window.location.protocol+'//'+window.location.hostname+'/questionario/assets/config.json'));
+       return this.http.get('/starter/barramento')
 
-             }
+         .map((resultado) => {
              this.redirectService.startRedirectFromBarramento();
-           return true;
+             return true;
          });
      }
 
-    onlyRedirectService() {
-        this.redirectService.startInitVerifySessionToken();
-    }
-
-
 }
+
 
 ```
 
