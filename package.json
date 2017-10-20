@@ -1,6 +1,6 @@
 {
   "name": "seguranca",
-  "version": "5.2.1",
+  "version": "5.2.5",
   "description": "Módulo de segurança oauth2",
   "main": "./bundles/seguranca.umd.js",
   "module": "./modules/seguranca.es5.js",
@@ -17,7 +17,7 @@
   "author": "",
   "repository": {
     "type": "git",
-    "url": "github.com/rcarauta/seguranca.git"
+    "url": "https://github.com/rcarauta/seguranca.git"
   },
   "keywords": [
     "angular",
@@ -27,7 +27,19 @@
   "license": "MIT",
   "peerDependencies": {
     "@angular/common": "~4.0.0",
-    "@angular/core": "~4.0.0"
+    "@angular/core": "~4.0.0",
+    "@angular/animations": "^4.1.3",
+    "@angular/common": "~4.0.0",
+    "@angular/compiler": "~4.0.0",
+    "@angular/compiler-cli": "~4.0.0",
+    "@angular/core": "~4.0.0",
+    "@angular/forms": "~4.0.0",
+    "@angular/http": "~4.0.0",
+    "@angular/material": "^2.0.0-beta.5",
+    "@angular/platform-browser": "~4.0.0",
+    "@angular/platform-browser-dynamic": "~4.0.0",
+    "@angular/platform-server": "~4.0.0",
+    "@angular/router": "~4.0.0"
   },
   "devDependencies": {
     "@angular/animations": "^4.1.3",

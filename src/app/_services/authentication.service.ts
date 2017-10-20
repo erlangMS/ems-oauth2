@@ -26,6 +26,10 @@ export class AuthenticationService implements OnInit {
     }
 
     ngOnInit(){
+      AuthenticationService.currentUser.token = localStorage.getItem('token');
+      AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
+      AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
+      AuthenticationService.currentUser.user = localStorage.getItem('user');
       this.findUser()
         .subscribe(result =>{
 
@@ -61,9 +65,9 @@ export class AuthenticationService implements OnInit {
             client = count[0];
         }
         if (AuthenticationService.base_url == '') {
-            AuthenticationService.base_url = DefaultHeaders.host
+            AuthenticationService.base_url = DefaultHeaders.host;
         }
-        DefaultHeaders.headers.append ("Authorization", "Basic " + btoa ("erlangms@unb.br:5outLag1"));
+        DefaultHeaders.headers.append ("Authorization", "Basic " + btoa ("geral:123456"));
         return this.http.get (AuthenticationService.base_url + '/auth/client?filter={"name":"' + client + '"}')
             .map ((resposta) => {
                 let json = resposta.json ();
@@ -135,6 +139,7 @@ export class AuthenticationService implements OnInit {
     logout ():void {
         this.cancelPeriodicIncrement ();
         localStorage.removeItem ("dateAccessPage");
+        localStorage.removeItem ('token');
         AuthenticationService.currentUser = {
             token: '',
             user: '',

@@ -122,9 +122,7 @@ export class RedirectService implements OnDestroy {
                           AuthenticationService.currentUser.token = localStorage.getItem('token');
                           AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
                           AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
-                          localStorage.removeItem ('token');
-                          localStorage.removeItem ("client_id");
-                          localStorage.removeItem('codigo');
+                          
                       });
             },
             error => {

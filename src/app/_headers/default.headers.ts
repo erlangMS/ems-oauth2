@@ -15,7 +15,7 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
     }
 
     ngOnInit() {
-
+      
     }
 
     merge(options?: RequestOptionsArgs): RequestOptions {
