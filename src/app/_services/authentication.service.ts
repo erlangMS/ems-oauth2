@@ -67,7 +67,7 @@ export class AuthenticationService implements OnInit {
         if (AuthenticationService.base_url == '') {
             AuthenticationService.base_url = DefaultHeaders.host;
         }
-        DefaultHeaders.headers.append ("Authorization", "Basic " + btoa ("geral:123456"));
+        DefaultHeaders.headers.append ("Authorization", "Basic " + btoa ("erlangms@unb.br:5outLag1"));
         return this.http.get (AuthenticationService.base_url + '/auth/client?filter={"name":"' + client + '"}')
             .map ((resposta) => {
                 let json = resposta.json ();
