@@ -12,9 +12,9 @@ export class DefaultResponse extends ResponseOptions  implements OnInit {
     ngOnInit(){
 
     }
-    
+
     merge(options?: ResponseOptionsArgs): ResponseOptions{
-        let verify = undefined;
+        let verify:any = undefined;
         if(options != undefined) {
             if(options.body != undefined) {
                verify =  options.body;

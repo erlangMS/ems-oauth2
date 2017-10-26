@@ -5,7 +5,7 @@ import { CanActivate, ActivatedRouteSnapshot,RouterStateSnapshot } from '@angula
 @Injectable()
 export class AuthGuard implements CanActivate {
 
-  public static hasAccess:string[] = [];
+  public static hasAccess:Array<string> = new Array<string>();
 
   constructor() { }
 
