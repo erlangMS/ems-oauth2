@@ -118,7 +118,7 @@ export class AuthenticationService implements OnInit {
         this.time = sessionTime * 1000;
 
         this.intervalId = setInterval (() => {
-            if (this.time < 1000 || AuthenticationService.currentUser.token == '') {
+            if (this.time < 1000 || !localStorage.getItem('token')) {
                 this.logout ();
             } else {
                 this.time = this.time - 1000;
@@ -140,6 +140,9 @@ export class AuthenticationService implements OnInit {
         this.cancelPeriodicIncrement ();
         localStorage.removeItem ("dateAccessPage");
         localStorage.removeItem ('token');
+        localStorage.removeItem('resource_owner');
+        localStorage.removeItem ('user');
+        localStorage.removeItem('codigo');
         AuthenticationService.currentUser = {
             token: '',
             user: '',
@@ -157,6 +160,8 @@ export class AuthenticationService implements OnInit {
         localStorage.removeItem ('token');
         localStorage.removeItem ("dateAccessPage");
         localStorage.removeItem ('user');
+        localStorage.removeItem('codigo');
+        localStorage.removeItem('resource_owner');
         AuthenticationService.currentUser = {
             token: '',
             user: '',
@@ -172,11 +177,13 @@ export class AuthenticationService implements OnInit {
                 let resp = response.json ();
                 let login = resp.resource_owner.login;
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() login = '+login+'\n';
-                let idPessoa = resp.resource_owner.codigo;
+                let idPessoa = resp.resource_owner.id;
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() idPessoa = '+idPessoa+'\n';
                 localStorage.setItem ('user', login);
                 localStorage.setItem ('codigo', idPessoa);
-            });
+                localStorage.setItem("resource_owner",JSON.stringify(resp.resource_owner));
+
+               });
     }
 
 }
