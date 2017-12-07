@@ -3,6 +3,7 @@ import {Http} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import {DefaultHeaders} from "../_headers/default.headers";
+import { CookieService } from '../_cookie/cookie.service';
 
 
 @Injectable ()
@@ -21,7 +22,7 @@ export class AuthenticationService implements OnInit {
         codigo: ''
     }
 
-    constructor (private http:Http) {
+    constructor (private http:Http, private cookieService:CookieService) {
 
     }
 
@@ -95,9 +96,13 @@ export class AuthenticationService implements OnInit {
         return this.http.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
             .map ((resposta) => {
                 var resp = resposta.json ();
+                let url = window.location.href;
+                let array = url.split ('/');
+                let dominio = array[2].split(':');
                 AuthenticationService.currentUser.token = resp.access_token;
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService redirectUserTokenAccess() resp.access_token'+resp.access_token+'\n';
                 localStorage.setItem ('token', AuthenticationService.currentUser.token);
+                this.cookieService.setCookie("token",AuthenticationService.currentUser.token,3600,'/',dominio[0],false);
                 this.periodicIncrement (3600);
                 let localDateTime = Date.now ();
                 localStorage.setItem ("dateAccessPage", localDateTime.toString ());
@@ -137,31 +142,45 @@ export class AuthenticationService implements OnInit {
     };
 
     logout ():void {
+        let url = window.location.href;
+        let array = url.split ('/');
+        let dominio = array[2].split(':');
+
         this.cancelPeriodicIncrement ();
         localStorage.removeItem ("dateAccessPage");
         localStorage.removeItem ('token');
         localStorage.removeItem('resource_owner');
         localStorage.removeItem ('user');
         localStorage.removeItem('codigo');
+        this.cookieService.setCookie("token",' ',3600,'/',dominio[0],false);
         AuthenticationService.currentUser = {
             token: '',
             user: '',
             client_id: AuthenticationService.currentUser.client_id,
             codigo: ''
         }
-        this.getUrl ()
-            .subscribe (resultado => {
-                window.location.href = resultado.url;
-            });
+
+        this.getClientCode(array[3])
+        .subscribe(resp=>{
+            this.getUrl ()
+                .subscribe (resultado => {
+                    window.location.href = resultado.url;
+                });
+        });
     }
 
     reset ():void {
+        let url = window.location.href;
+        let array = url.split ('/');
+        let dominio = array[2].split(':');
+
         this.cancelPeriodicIncrement ();
         localStorage.removeItem ('token');
         localStorage.removeItem ("dateAccessPage");
         localStorage.removeItem ('user');
         localStorage.removeItem('codigo');
         localStorage.removeItem('resource_owner');
+        this.cookieService.setCookie("token",' ',3600,'/',dominio[0],false);
         AuthenticationService.currentUser = {
             token: '',
             user: '',

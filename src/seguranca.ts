@@ -7,3 +7,4 @@ export { RedirectService } from './app/_redirect/redirect.service';
 export { DefaultResponse } from './app/_response/default.response.service';
 export { NavigationComponent } from './app/navigation/navigation.component';
 export { LoggerService } from './app/_logger/logger.service';
+export { CookieService } from './app/_cookie/cookie.service';

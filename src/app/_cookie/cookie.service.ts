@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 
+
 @Injectable()
 export class CookieService {
 
@@ -22,28 +23,16 @@ export class CookieService {
     return "";
   }
 
-   deleteCookie(name: string) {
-    this.setCookieForRemove(name, "", -1);
-  }
-
-
-  private setCookieForRemove(name: string, value: string, expireMilisecounds: number) {
-    let d: Date = new Date();
-    d.setTime(d.getTime() + expireMilisecounds);
-    let expires: string = "expires="+d.toUTCString();
-    document.cookie = name +"="+value+";"+expires;
-  }
-
    setCookie(name: string, value: string, expireMilisecounds: number, path: string, domain: string, secure: boolean)  {
     let d:Date = new Date();
     d.setTime(d.getTime() + expireMilisecounds );
     let expires:string =  d.toUTCString();
 
-     document.cookie = name + "=" +value +
-       ( ( expires ) ? ";expires=" + expires : "" ) +
-       ( ( path ) ? ";path=" + path : "" ) +
-       ( ( domain ) ? ";domain=" + domain : "" ) +
-       ( ( secure ) ? ";secure" : "" );
+     let cookirFormatado = name + "=" +value +";"+
+       ( ( path ) ? " path=" + path+";" : "" ) +
+       ( ( domain ) ? " domain=" + domain+"" : "" );
+     
+     document.cookie = cookirFormatado;
        
   }
 

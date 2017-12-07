@@ -3,6 +3,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import {AuthenticationService} from "../_services/authentication.service";
 import {Observable} from 'rxjs/Observable';
 import { LoggerService } from '../_logger/logger.service';
+import { CookieService } from '../_cookie/cookie.service';
 
 @Injectable()
 export class RedirectService implements OnDestroy {
@@ -11,10 +12,16 @@ export class RedirectService implements OnDestroy {
     public localDateTime: number;
     private auth_url:string = '';
 
-    constructor(private authenticationService: AuthenticationService, private loggerService: LoggerService){
+    constructor(private authenticationService: AuthenticationService, private loggerService: LoggerService,
+                private cookieService: CookieService){
     }
 
     startRedirectFromBarramento(){
+        if(!localStorage.getItem('token')){
+            if(this.cookieService.getCookie('token') != ''){
+                localStorage.setItem('token',this.cookieService.getCookie('token'));
+            }
+        }
         this.authenticationService.getUrl()
             .subscribe(result =>{
                     AuthenticationService.contentLogger += 'oauth2-client RedirectService startRedirectFromBarramento()  result = '+result+'\n';
@@ -48,9 +55,17 @@ export class RedirectService implements OnDestroy {
         }
 
         if (localStorage.getItem ('token')) {
+              let urlName = window.location.href.split('/');
               AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if (localStorage.getItem ("token"))   localStorage.getItem ("token") = '+localStorage.getItem ("token")+'\n';
               this.authenticationService.periodicIncrement(3600);
               AuthenticationService.currentUser.token = localStorage.getItem ('token');
+              this.authenticationService.getClientCode(urlName[3])
+              .subscribe(res => {
+                  this.authenticationService.findUser()
+                  .subscribe(resposta => {
+                      
+                  });
+              });
 
         }
 
