@@ -106,6 +106,7 @@ export class AuthenticationService implements OnInit {
                 this.periodicIncrement (3600);
                 let localDateTime = Date.now ();
                 localStorage.setItem ("dateAccessPage", localDateTime.toString ());
+                this.cookieService.setCookie("dateAccessPage",localDateTime.toString(),3600,'/',dominio[0],false);
                 DefaultHeaders.headers.delete ('content-type');
                 DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
                 return true;
@@ -146,24 +147,24 @@ export class AuthenticationService implements OnInit {
         let array = url.split ('/');
         let dominio = array[2].split(':');
 
-        this.cancelPeriodicIncrement ();
-        localStorage.removeItem ("dateAccessPage");
-        localStorage.removeItem ('token');
-        localStorage.removeItem('resource_owner');
-        localStorage.removeItem ('user');
-        localStorage.removeItem('codigo');
-        this.cookieService.setCookie("token",' ',3600,'/',dominio[0],false);
-        AuthenticationService.currentUser = {
-            token: '',
-            user: '',
-            client_id: AuthenticationService.currentUser.client_id,
-            codigo: ''
-        }
-
         this.getClientCode(array[3])
         .subscribe(resp=>{
             this.getUrl ()
                 .subscribe (resultado => {
+                    this.cancelPeriodicIncrement ();
+                    localStorage.removeItem ("dateAccessPage");
+                    localStorage.removeItem ('token');
+                    localStorage.removeItem('resource_owner');
+                    localStorage.removeItem ('user');
+                    localStorage.removeItem('codigo');
+                    this.cookieService.setCookie("token",' ',3600,'/',dominio[0],false);
+                    this.cookieService.setCookie("dateAccessPage",' ',3600,'/',dominio[0],false);
+                    AuthenticationService.currentUser = {
+                        token: '',
+                        user: '',
+                        client_id: AuthenticationService.currentUser.client_id,
+                        codigo: ''
+                    }
                     window.location.href = resultado.url;
                 });
         });
@@ -181,6 +182,7 @@ export class AuthenticationService implements OnInit {
         localStorage.removeItem('codigo');
         localStorage.removeItem('resource_owner');
         this.cookieService.setCookie("token",' ',3600,'/',dominio[0],false);
+        this.cookieService.setCookie("dateAccessPage",' ',3600,'/',dominio[0],false);
         AuthenticationService.currentUser = {
             token: '',
             user: '',

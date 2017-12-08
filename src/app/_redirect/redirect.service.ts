@@ -20,6 +20,7 @@ export class RedirectService implements OnDestroy {
         if(!localStorage.getItem('token')){
             if(this.cookieService.getCookie('token') != ''){
                 localStorage.setItem('token',this.cookieService.getCookie('token'));
+                localStorage.setItem ("dateAccessPage", this.cookieService.getCookie('dateAccessPage'));
             }
         }
         this.authenticationService.getUrl()
@@ -61,10 +62,7 @@ export class RedirectService implements OnDestroy {
               AuthenticationService.currentUser.token = localStorage.getItem ('token');
               this.authenticationService.getClientCode(urlName[3])
               .subscribe(res => {
-                  this.authenticationService.findUser()
-                  .subscribe(resposta => {
-                      
-                  });
+
               });
 
         }
