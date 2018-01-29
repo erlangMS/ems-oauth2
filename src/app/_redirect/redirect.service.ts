@@ -23,21 +23,18 @@ export class RedirectService implements OnDestroy {
                 localStorage.setItem ("dateAccessPage", this.cookieService.getCookie('dateAccessPage'));
             }
         }
+        let urlName = window.location.href.split('/');
+
         this.authenticationService.getUrl()
             .subscribe(result =>{
+                 this.authenticationService.getClientCode(urlName[3])
+                  .subscribe(res => {
                     AuthenticationService.contentLogger += 'oauth2-client RedirectService startRedirectFromBarramento()  result = '+result+'\n';
                     this.auth_url= result.url;
-                    this.startInitVerifySessionToken();
-                },
-            error => {
-              AuthenticationService.contentLogger += 'oauth2_client RedirectService startRedirectFromBarramento()  '+error+'\n';
-              this.loggerService.getTokenLogger()
-              .subscribe(result =>{
-                this.loggerService.sendLogger('error',  AuthenticationService.contentLogger)
-                .subscribe(resultado =>{
-                });
+                    this.startInitVerifySessionToken(); 
+                  });      
               });
-          });
+
 
   }
 
@@ -130,13 +127,6 @@ export class RedirectService implements OnDestroy {
           this.authenticationService.redirectUserTokenAccess(base_auth[0], localStorage.getItem('client_id'),'CPD',code,
               'authorization_code','/'+nomeSistema[0]+'/index.html/' )
             .subscribe(resultado => {
-                  this.authenticationService.findUser()
-                      .subscribe(result => {
-                          AuthenticationService.currentUser.token = localStorage.getItem('token');
-                          AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
-                          AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
-                      
-                      });
             },
             error => {
               AuthenticationService.contentLogger += 'oauth2_client RedirectService startRedirectFromBarramento()  '+error+'\n';

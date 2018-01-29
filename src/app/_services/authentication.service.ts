@@ -73,9 +73,9 @@ export class AuthenticationService implements OnInit {
         return this.http.get (AuthenticationService.base_url + '/auth/client?filter={"name":"' + client + '"}')
             .map ((resposta) => {
                 let json = resposta.json ();
-                localStorage.setItem ('client_id', json[0].codigo);
+                localStorage.setItem ('client_id', json[0].id);
                 DefaultHeaders.headers.delete ('Authorization');
-                return {code: json[0].codigo}
+                return {code: json[0].id}
             });
 
     }
@@ -106,12 +106,27 @@ export class AuthenticationService implements OnInit {
                 this.cookieService.setCookie("token",AuthenticationService.currentUser.token,3600,'/',dominio[0],false);
                 this.periodicIncrement (3600);
                 let localDateTime = Date.now ();
+                this.addValueUser(resp);
                 localStorage.setItem ("dateAccessPage", localDateTime.toString ());
                 this.cookieService.setCookie("dateAccessPage",localDateTime.toString(),3600,'/',dominio[0],false);
                 DefaultHeaders.headers.delete ('content-type');
                 DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
                 return true;
             });
+    }
+
+    private addValueUser(resp:any){
+        let login = resp.resource_owner.login;
+        AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() login = '+login+'\n';
+        let idPessoa = resp.resource_owner.id;
+        AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() idPessoa = '+idPessoa+'\n';
+        localStorage.setItem ('user', login);
+        localStorage.setItem ('codigo', idPessoa);
+        localStorage.setItem("resource_owner",JSON.stringify(resp.resource_owner));
+        AuthenticationService.currentUser.token = localStorage.getItem('token');
+        AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
+        AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
+
     }
 
 

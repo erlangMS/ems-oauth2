@@ -20,9 +20,24 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
 
     merge(options?: RequestOptionsArgs): RequestOptions {
       let protocol:any[] = [''];
+      let url = window.location.href;
+      let array = url.split ('/');
+      let dominio:any;
+      
+      if(array.length == 6){
+          dominio = array[5].split('?');
+      } else {
+          dominio = array[4].split('?');
+      }
 
-    	if(options != undefined){
-    			options.headers = DefaultHeaders.headers;
+       if(dominio[0] != "" && dominio[0] != "home" && dominio[0] != "index.html"){ 
+            localStorage.setItem("actualRoute",dominio[0]);
+       } 
+
+       
+
+      if(options != undefined){
+    		options.headers = DefaultHeaders.headers;
       }
 
       if(AuthenticationService.currentUser.token != '') {

@@ -1,11 +1,12 @@
 import { Injectable, OnInit } from '@angular/core';
 import { ResponseOptions, ResponseOptionsArgs  } from '@angular/http';
 import {AuthenticationService} from "../_services/authentication.service";
+import { CookieService } from '../_cookie/cookie.service';
 
 @Injectable()
 export class DefaultResponse extends ResponseOptions  implements OnInit {
 
-    constructor(){
+    constructor(private cookieService: CookieService){
         super();
     }
 
@@ -22,9 +23,16 @@ export class DefaultResponse extends ResponseOptions  implements OnInit {
         }
 
       if(verify == '{"error":"access_denied"}'){
+            let url = window.location.href;
+            let array = url.split ('/');
+            let dominio = array[2].split(':');
+
             localStorage.removeItem('token');
             localStorage.removeItem("dateAccessPage");
             localStorage.removeItem('user');
+            this.cookieService.setCookie("token",' ',3600,'/',dominio[0],false);
+            this.cookieService.setCookie("dateAccessPage",' ',3600,'/',dominio[0],false);
+            AuthenticationService.currentUser.token = '';
         }
 
         var result = super.merge(options);
