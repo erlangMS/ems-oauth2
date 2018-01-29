@@ -69,12 +69,10 @@ export class AuthenticationService implements OnInit {
             AuthenticationService.base_url = DefaultHeaders.host;
         }
         DefaultHeaders.headers.delete ("Authorization");
-        DefaultHeaders.headers.append ("Authorization", "Basic " + btoa ("erlangms@unb.br:5outLag1"));
         return this.http.get (AuthenticationService.base_url + '/auth/client?filter={"name":"' + client + '"}')
             .map ((resposta) => {
                 let json = resposta.json ();
                 localStorage.setItem ('client_id', json[0].id);
-                DefaultHeaders.headers.delete ('Authorization');
                 return {code: json[0].id}
             });
 
