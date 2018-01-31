@@ -17,9 +17,9 @@ export class RedirectService implements OnDestroy {
     }
 
     startRedirectFromBarramento(){
-        if(!localStorage.getItem('token')){
+        if(!AuthenticationService.currentUser.token){
             if(this.cookieService.getCookie('token') != ''){
-                localStorage.setItem('token',this.cookieService.getCookie('token'));
+                localStorage.setItem('token_'+this.authenticationService.nomeDoSistema,this.cookieService.getCookie('token'));
                 localStorage.setItem ("dateAccessPage", this.cookieService.getCookie('dateAccessPage'));
             }
         }
@@ -39,7 +39,7 @@ export class RedirectService implements OnDestroy {
   }
 
     startInitVerifySessionToken() {
-        if(localStorage.getItem("token") && localStorage.getItem("dataAccessPage")){
+        if(AuthenticationService.currentUser.token && AuthenticationService.currentUser.timer){
           AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken()  localStorage.getItem("token") = '+localStorage.getItem("token")+'\n';
           AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken()  localStorage.getItem("dataAccessPage") = '+localStorage.getItem("dataAccessPage")+'\n';
 
@@ -52,7 +52,7 @@ export class RedirectService implements OnDestroy {
             }
         }
 
-        if (localStorage.getItem ('token')) {
+        if (AuthenticationService.currentUser.token) {
               let urlName = window.location.href.split('/');
               AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if (localStorage.getItem ("token"))   localStorage.getItem ("token") = '+localStorage.getItem ("token")+'\n';
               this.authenticationService.periodicIncrement(3600);
@@ -64,7 +64,7 @@ export class RedirectService implements OnDestroy {
 
         }
 
-        if (localStorage.getItem ("dateAccessPage") && AuthenticationService.currentUser.token != "") {
+        if (AuthenticationService.currentUser.token && AuthenticationService.currentUser.token != "") {
             AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if (localStorage.getItem ("dateAccessPage") && AuthenticationService.currentUser.token != "")  \n';
             this.verifyTimeTokenExpired ();
         }
@@ -140,7 +140,7 @@ export class RedirectService implements OnDestroy {
     }
 
     private authenticateClient(){
-        if(!localStorage.getItem('token')) {
+        if(!AuthenticationService.currentUser.token) {
             this.authenticationService.reset();
               let urlName = window.location.href.split('/');
               AuthenticationService.contentLogger += 'oauth2-client RedirectService authenticateClient() urlName = '+urlName+'\n';
