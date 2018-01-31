@@ -19,7 +19,8 @@ export class AuthenticationService implements OnInit {
         token: '',
         user: '',
         client_id: '',
-        codigo: ''
+        codigo: '',
+        timer: ''
     }
 
     constructor (private http:Http, private cookieService:CookieService) {
@@ -31,6 +32,7 @@ export class AuthenticationService implements OnInit {
       AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
       AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
       AuthenticationService.currentUser.user = localStorage.getItem('user');
+      AuthenticationService.currentUser.timer = localStorage.getItem('dateAccessPage');
       this.findUser()
         .subscribe(result =>{
 
@@ -73,6 +75,7 @@ export class AuthenticationService implements OnInit {
             .map ((resposta) => {
                 let json = resposta.json ();
                 localStorage.setItem ('client_id', json[0].id);
+
                 return {code: json[0].id}
             });
 
@@ -107,6 +110,7 @@ export class AuthenticationService implements OnInit {
                 this.addValueUser(resp);
                 localStorage.setItem ("dateAccessPage", localDateTime.toString ());
                 this.cookieService.setCookie("dateAccessPage",localDateTime.toString(),3600,'/',dominio[0],false);
+                AuthenticationService.currentUser.timer = localStorage.getItem('dateAccessPage');
                 DefaultHeaders.headers.delete ('content-type');
                 DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
                 return true;
@@ -130,7 +134,7 @@ export class AuthenticationService implements OnInit {
 
     periodicIncrement (sessionTime:number):void {
         this.cancelPeriodicIncrement ();
-        if (localStorage.getItem ('dateAccessPage')) {
+        if (AuthenticationService.currentUser.timer) {
             let timeAccess = Date.now ();
             sessionTime = 3600000 - (timeAccess - Number (localStorage.getItem ("dateAccessPage")));
             sessionTime = sessionTime / 1000;
@@ -138,7 +142,7 @@ export class AuthenticationService implements OnInit {
         this.time = sessionTime * 1000;
 
         this.intervalId = setInterval (() => {
-            if (this.time < 1000 || !localStorage.getItem('token')) {
+            if (this.time < 1000 || !AuthenticationService.currentUser.token) {
                 this.logout ();
             } else {
                 this.time = this.time - 1000;
@@ -207,7 +211,7 @@ export class AuthenticationService implements OnInit {
 
     findUser ():Observable<any> {
       AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() before return http.post \n';
-        return this.http.post ('/recurso', '')
+        return this.http.post ('/resource', '')
             .map ((response) => {
                 let resp = response.json ();
                 let login = resp.resource_owner.login;

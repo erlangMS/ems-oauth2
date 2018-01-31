@@ -59,7 +59,7 @@ export class RedirectService implements OnDestroy {
               AuthenticationService.currentUser.token = localStorage.getItem ('token');
               this.authenticationService.getClientCode(urlName[3])
               .subscribe(res => {
-
+            
               });
 
         }
