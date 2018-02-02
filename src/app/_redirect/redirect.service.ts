@@ -56,7 +56,6 @@ export class RedirectService implements OnDestroy {
               let urlName = window.location.href.split('/');
               AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if (localStorage.getItem ("token"))   localStorage.getItem ("token") = '+localStorage.getItem ("token")+'\n';
               this.authenticationService.periodicIncrement(3600);
-              AuthenticationService.currentUser.token = localStorage.getItem ('token');
               this.authenticationService.getClientCode(urlName[3])
               .subscribe(res => {
             

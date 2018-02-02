@@ -2,6 +2,7 @@ import {Injectable, OnInit} from '@angular/core';
 import {Http} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/publishReplay';
 import {DefaultHeaders} from "../_headers/default.headers";
 import { CookieService } from '../_cookie/cookie.service';
 
@@ -23,18 +24,22 @@ export class AuthenticationService implements OnInit {
         timer: ''
     }
 
-    public nomeDoSistema:string = "";
+    public nomeDoSistema:any = "";
 
     constructor (private http:Http, private cookieService:CookieService) {
-
+        let url = window.location.href;
+        let array = url.split ('/');
+        this.nomeDoSistema = array[3].split('#');
+        if(localStorage.getItem('token_'+this.nomeDoSistema)){  
+             AuthenticationService.currentUser.token = localStorage.getItem('token_'+this.nomeDoSistema);
+             AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
+             AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
+             AuthenticationService.currentUser.user = localStorage.getItem('user');
+             AuthenticationService.currentUser.timer = localStorage.getItem('dateAccessPage');
+        }
     }
 
     ngOnInit(){
-      AuthenticationService.currentUser.token = localStorage.getItem('token_'+this.nomeDoSistema);
-      AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
-      AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
-      AuthenticationService.currentUser.user = localStorage.getItem('user');
-      AuthenticationService.currentUser.timer = localStorage.getItem('dateAccessPage');
       this.findUser()
         .subscribe(result =>{
 
@@ -61,7 +66,8 @@ export class AuthenticationService implements OnInit {
                 let url =  json.auth_url + '?response_type=code&client_id=' + localStorage.getItem('client_id') + '&state=xyz%20&redirect_uri='+'/'+nomeSistema[0]+"/index.html/";
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() url = '+url+'\n';
                 return {url: url};
-            });
+            }).publishReplay(1)
+            .refCount();
     }
 
     getClientCode (client:string):Observable<any> {
@@ -80,7 +86,8 @@ export class AuthenticationService implements OnInit {
                 localStorage.setItem ('client_id', json[0].id);
 
                 return {code: json[0].id}
-            });
+            }).publishReplay(1)
+            .refCount();
 
     }
 
@@ -117,7 +124,8 @@ export class AuthenticationService implements OnInit {
                 DefaultHeaders.headers.delete ('content-type');
                 DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
                 return true;
-            });
+            }).publishReplay(1)
+            .refCount();
     }
 
     private addValueUser(resp:any){
@@ -225,7 +233,9 @@ export class AuthenticationService implements OnInit {
                 localStorage.setItem ('codigo', idPessoa);
                 localStorage.setItem("resource_owner",JSON.stringify(resp.resource_owner));
 
-               });
+               }).publishReplay(1)
+               .refCount();
     }
+
 
 }
