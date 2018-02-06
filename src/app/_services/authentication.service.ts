@@ -30,8 +30,8 @@ export class AuthenticationService implements OnInit {
         let url = window.location.href;
         let array = url.split ('/');
         this.nomeDoSistema = array[3].split('#');
-        if(localStorage.getItem('token_'+this.nomeDoSistema)){  
-             AuthenticationService.currentUser.token = localStorage.getItem('token_'+this.nomeDoSistema);
+        if(localStorage.getItem('erlangms_'+this.nomeDoSistema)){  
+             AuthenticationService.currentUser.token = localStorage.getItem('erlangms_'+this.nomeDoSistema);
              AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
              AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
              AuthenticationService.currentUser.user = localStorage.getItem('user');
@@ -113,7 +113,7 @@ export class AuthenticationService implements OnInit {
                 let dominio = array[2].split(':');
                 AuthenticationService.currentUser.token = resp.access_token;
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService redirectUserTokenAccess() resp.access_token'+resp.access_token+'\n';
-                localStorage.setItem ('token_'+this.nomeDoSistema, AuthenticationService.currentUser.token);
+                localStorage.setItem ('erlangms_'+this.nomeDoSistema, AuthenticationService.currentUser.token);
                 this.cookieService.setCookie("token",AuthenticationService.currentUser.token,3600,'/',dominio[0],false);
                 this.periodicIncrement (3600);
                 let localDateTime = Date.now ();
@@ -136,7 +136,7 @@ export class AuthenticationService implements OnInit {
         localStorage.setItem ('user', login);
         localStorage.setItem ('codigo', idPessoa);
         localStorage.setItem("resource_owner",JSON.stringify(resp.resource_owner));
-        AuthenticationService.currentUser.token = localStorage.getItem('token_'+this.nomeDoSistema);
+        AuthenticationService.currentUser.token = localStorage.getItem('erlangms_'+this.nomeDoSistema);
         AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
         AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
 
@@ -182,7 +182,7 @@ export class AuthenticationService implements OnInit {
                 .subscribe (resultado => {
                     this.cancelPeriodicIncrement ();
                     localStorage.removeItem ("dateAccessPage");
-                    localStorage.removeItem ('token_'+this.nomeDoSistema);
+                    localStorage.removeItem ('erlangms_'+this.nomeDoSistema);
                     localStorage.removeItem('resource_owner');
                     localStorage.removeItem ('user');
                     localStorage.removeItem('codigo');
@@ -205,7 +205,7 @@ export class AuthenticationService implements OnInit {
         let dominio = array[2].split(':');
 
         this.cancelPeriodicIncrement ();
-        localStorage.removeItem ('token_'+this.nomeDoSistema);
+        localStorage.removeItem ('erlangms_'+this.nomeDoSistema);
         localStorage.removeItem ("dateAccessPage");
         localStorage.removeItem ('user');
         localStorage.removeItem('codigo');

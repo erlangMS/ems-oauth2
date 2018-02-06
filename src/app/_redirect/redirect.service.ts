@@ -17,12 +17,12 @@ export class RedirectService implements OnDestroy {
     }
 
     startRedirectFromBarramento(){
-        if(!AuthenticationService.currentUser.token){
+     /*   if(!AuthenticationService.currentUser.token){
             if(this.cookieService.getCookie('token') != ''){
-                localStorage.setItem('token_'+this.authenticationService.nomeDoSistema,this.cookieService.getCookie('token'));
+                localStorage.setItem('erlangms_'+this.authenticationService.nomeDoSistema,this.cookieService.getCookie('token'));
                 localStorage.setItem ("dateAccessPage", this.cookieService.getCookie('dateAccessPage'));
             }
-        }
+        } */
         let urlName = window.location.href.split('/');
 
         this.authenticationService.getUrl()
@@ -58,7 +58,10 @@ export class RedirectService implements OnDestroy {
               this.authenticationService.periodicIncrement(3600);
               this.authenticationService.getClientCode(urlName[3])
               .subscribe(res => {
-            
+                    this.authenticationService.findUser()
+                    .subscribe(res=>{
+
+                    });
               });
 
         }
