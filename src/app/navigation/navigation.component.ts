@@ -93,7 +93,7 @@ export class NavigationComponent implements OnInit {
 
   verificarUsuarioLogado(){
     if(AuthenticationService.currentUser.token != ""){
-      this.name_user = localStorage.getItem('user');
+      this.name_user = AuthenticationService.currentUser.resource_owner.name;
       return true;
     }else {
       return false;

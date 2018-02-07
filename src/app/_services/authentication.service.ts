@@ -21,7 +21,8 @@ export class AuthenticationService implements OnInit {
         user: '',
         client_id: '',
         codigo: '',
-        timer: ''
+        timer: '',
+        resource_owner: ''
     }
 
     public nomeDoSistema:any = "";
@@ -30,12 +31,16 @@ export class AuthenticationService implements OnInit {
         let url = window.location.href;
         let array = url.split ('/');
         this.nomeDoSistema = array[3].split('#');
-        if(localStorage.getItem('erlangms_'+this.nomeDoSistema)){  
-             AuthenticationService.currentUser.token = localStorage.getItem('erlangms_'+this.nomeDoSistema);
-             AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
-             AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
-             AuthenticationService.currentUser.user = localStorage.getItem('user');
-             AuthenticationService.currentUser.timer = localStorage.getItem('dateAccessPage');
+        if(localStorage.getItem(this.nomeDoSistema)){ 
+            var stringObjeto:any = localStorage.getItem(this.nomeDoSistema);
+            var variaveisSistema:any = JSON.parse(stringObjeto); 
+            AuthenticationService.currentUser.token = variaveisSistema.token
+            AuthenticationService.currentUser.client_id = variaveisSistema.client_id;
+            AuthenticationService.currentUser.codigo = variaveisSistema.codigo;
+            AuthenticationService.currentUser.user = variaveisSistema.user;
+            AuthenticationService.currentUser.timer = variaveisSistema.timer;
+            AuthenticationService.currentUser.resource_owner = variaveisSistema.resource_owner;
+        
         }
     }
 
@@ -55,15 +60,12 @@ export class AuthenticationService implements OnInit {
         let array = url.split ('/');
         let nomeSistema = array[3].split('#');
         AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() nomeSistema = '+nomeSistema+'\n';
-        if(!localStorage.getItem('client_id')) {
-          localStorage.setItem('client_id',AuthenticationService.currentUser.client_id);
-        }
         return this.http.get (array[0] + '//' + array[2] + '/'+nomeSistema[0]+'/barramento')
             .map ((res) => {
                 let json = res.json ();
                 AuthenticationService.base_url = json.base_url;
                 DefaultHeaders.host = json.base_url;
-                let url =  json.auth_url + '?response_type=code&client_id=' + localStorage.getItem('client_id') + '&state=xyz%20&redirect_uri='+'/'+nomeSistema[0]+"/index.html/";
+                let url =  json.auth_url + '?response_type=code&client_id=' + AuthenticationService.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+nomeSistema[0]+"/index.html/";
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() url = '+url+'\n';
                 return {url: url};
             }).publishReplay(1)
@@ -83,7 +85,7 @@ export class AuthenticationService implements OnInit {
             .map ((resposta) => {
                 this.nomeDoSistema = client;
                 let json = resposta.json ();
-                localStorage.setItem ('client_id', json[0].id);
+                AuthenticationService.currentUser.client_id = json[0].id;
 
                 return {code: json[0].id}
             }).publishReplay(1)
@@ -113,16 +115,15 @@ export class AuthenticationService implements OnInit {
                 let dominio = array[2].split(':');
                 AuthenticationService.currentUser.token = resp.access_token;
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService redirectUserTokenAccess() resp.access_token'+resp.access_token+'\n';
-                localStorage.setItem ('erlangms_'+this.nomeDoSistema, AuthenticationService.currentUser.token);
                 this.cookieService.setCookie("token",AuthenticationService.currentUser.token,3600,'/',dominio[0],false);
                 this.periodicIncrement (3600);
                 let localDateTime = Date.now ();
+                AuthenticationService.currentUser.timer = localDateTime.toString();
                 this.addValueUser(resp);
-                localStorage.setItem ("dateAccessPage", localDateTime.toString ());
                 this.cookieService.setCookie("dateAccessPage",localDateTime.toString(),3600,'/',dominio[0],false);
-                AuthenticationService.currentUser.timer = localStorage.getItem('dateAccessPage');
                 DefaultHeaders.headers.delete ('content-type');
                 DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
+
                 return true;
             }).publishReplay(1)
             .refCount();
@@ -133,12 +134,10 @@ export class AuthenticationService implements OnInit {
         AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() login = '+login+'\n';
         let idPessoa = resp.resource_owner.id;
         AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() idPessoa = '+idPessoa+'\n';
-        localStorage.setItem ('user', login);
-        localStorage.setItem ('codigo', idPessoa);
-        localStorage.setItem("resource_owner",JSON.stringify(resp.resource_owner));
-        AuthenticationService.currentUser.token = localStorage.getItem('erlangms_'+this.nomeDoSistema);
-        AuthenticationService.currentUser.client_id = localStorage.getItem('client_id');
-        AuthenticationService.currentUser.codigo = localStorage.getItem('codigo');
+        AuthenticationService.currentUser.codigo = idPessoa;
+        AuthenticationService.currentUser.user = login;
+        AuthenticationService.currentUser.resource_owner = resp.resource_owner;
+        localStorage.setItem(this.nomeDoSistema,JSON.stringify(AuthenticationService.currentUser));
 
     }
 
@@ -147,7 +146,7 @@ export class AuthenticationService implements OnInit {
         this.cancelPeriodicIncrement ();
         if (AuthenticationService.currentUser.timer) {
             let timeAccess = Date.now ();
-            sessionTime = 3600000 - (timeAccess - Number (localStorage.getItem ("dateAccessPage")));
+            sessionTime = 3600000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
             sessionTime = sessionTime / 1000;
         }
         this.time = sessionTime * 1000;
@@ -181,11 +180,7 @@ export class AuthenticationService implements OnInit {
             this.getUrl ()
                 .subscribe (resultado => {
                     this.cancelPeriodicIncrement ();
-                    localStorage.removeItem ("dateAccessPage");
-                    localStorage.removeItem ('erlangms_'+this.nomeDoSistema);
-                    localStorage.removeItem('resource_owner');
-                    localStorage.removeItem ('user');
-                    localStorage.removeItem('codigo');
+                    localStorage.removeItem (this.nomeDoSistema);
                     this.cookieService.setCookie("token",' ',3600,'/',dominio[0],false);
                     this.cookieService.setCookie("dateAccessPage",' ',3600,'/',dominio[0],false);
                     AuthenticationService.currentUser = {
@@ -205,11 +200,7 @@ export class AuthenticationService implements OnInit {
         let dominio = array[2].split(':');
 
         this.cancelPeriodicIncrement ();
-        localStorage.removeItem ('erlangms_'+this.nomeDoSistema);
-        localStorage.removeItem ("dateAccessPage");
-        localStorage.removeItem ('user');
-        localStorage.removeItem('codigo');
-        localStorage.removeItem('resource_owner');
+        localStorage.removeItem (this.nomeDoSistema);
         this.cookieService.setCookie("token",' ',3600,'/',dominio[0],false);
         this.cookieService.setCookie("dateAccessPage",' ',3600,'/',dominio[0],false);
         AuthenticationService.currentUser = {
@@ -229,10 +220,9 @@ export class AuthenticationService implements OnInit {
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() login = '+login+'\n';
                 let idPessoa = resp.resource_owner.id;
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() idPessoa = '+idPessoa+'\n';
-                localStorage.setItem ('user', login);
-                localStorage.setItem ('codigo', idPessoa);
-                localStorage.setItem("resource_owner",JSON.stringify(resp.resource_owner));
-
+                AuthenticationService.currentUser.resource_owner = resp.resource_owner;
+                AuthenticationService.currentUser.user = login;
+                AuthenticationService.currentUser.codigo = idPessoa;
                }).publishReplay(1)
                .refCount();
     }

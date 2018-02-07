@@ -23,6 +23,7 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
       let url = window.location.href;
       let array = url.split ('/');
       let dominio:any;
+      let nomeSistema = array[3].split('#');
       
       if(array.length == 6){
           dominio = array[5].split('?');
@@ -31,7 +32,7 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
       }
 
        if(dominio[0] != "" && dominio[0] != "home" && dominio[0] != "index.html"){ 
-            localStorage.setItem("actualRoute",dominio[0]);
+            localStorage.setItem("erlangms_actualRoute_"+nomeSistema,dominio[0]);
        } 
 
        

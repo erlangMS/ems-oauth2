@@ -16,6 +16,10 @@ export class DefaultResponse extends ResponseOptions  implements OnInit {
 
     merge(options?: ResponseOptionsArgs): ResponseOptions{
         let verify:any = undefined;
+        let url = window.location.href;
+        let array = url.split ('/');
+        let nomeSistema:any = array[3].split('#');
+
         if(options != undefined) {
             if(options.body != undefined) {
                verify =  options.body;
@@ -26,10 +30,7 @@ export class DefaultResponse extends ResponseOptions  implements OnInit {
             let url = window.location.href;
             let array = url.split ('/');
             let dominio = array[2].split(':');
-
-            localStorage.removeItem('token');
-            localStorage.removeItem("dateAccessPage");
-            localStorage.removeItem('user');
+            localStorage.removeItem(nomeSistema);
             this.cookieService.setCookie("token",' ',3600,'/',dominio[0],false);
             this.cookieService.setCookie("dateAccessPage",' ',3600,'/',dominio[0],false);
             AuthenticationService.currentUser.token = '';

@@ -44,7 +44,7 @@ export class RedirectService implements OnDestroy {
           AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken()  localStorage.getItem("dataAccessPage") = '+localStorage.getItem("dataAccessPage")+'\n';
 
             let timeAccess = Date.now();
-            let total = timeAccess - Number(localStorage.getItem("dateAccessPage"));
+            let total = timeAccess - Number(AuthenticationService.currentUser.timer);
             AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken()  localStorage.getItem("dateAccessPage") = '+localStorage.getItem("dateAccessPage")+'\n';
             if(total > 360000){
               AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if(total > 360000) \n';
@@ -58,10 +58,7 @@ export class RedirectService implements OnDestroy {
               this.authenticationService.periodicIncrement(3600);
               this.authenticationService.getClientCode(urlName[3])
               .subscribe(res => {
-                    this.authenticationService.findUser()
-                    .subscribe(res=>{
-
-                    });
+                    
               });
 
         }
@@ -95,7 +92,7 @@ export class RedirectService implements OnDestroy {
 
     private verifyTimeTokenExpired() {
         let dateSecoundAccess = Date.now();
-        this.localDateTime = Number(localStorage.getItem("dateAccessPage"));
+        this.localDateTime = Number(AuthenticationService.currentUser.timer);
         AuthenticationService.contentLogger += 'oauth2-client RedirectService verifyTimeTokenExpired()  localStorage.getItem("dataAccessPage") = '+localStorage.getItem("dataAccessPage")+'\n';
         let value = dateSecoundAccess - this.localDateTime;
         if (value >= (this.timeSession * 1000)) {
@@ -104,7 +101,7 @@ export class RedirectService implements OnDestroy {
     }
 
     private initVerificationRedirect() {
-        if(localStorage.getItem("dateAccessPage") && AuthenticationService.currentUser.token != ""){
+        if(AuthenticationService.currentUser.timer && AuthenticationService.currentUser.token != ""){
             this.verifyTimeTokenExpired();
         }else{
             if(AuthenticationService.currentUser.token != '') {
@@ -126,7 +123,7 @@ export class RedirectService implements OnDestroy {
           AuthenticationService.contentLogger += 'oauth2-client RedirectService redirectWithCodeUrl(code:string)  array = '+array+'\n';
           AuthenticationService.contentLogger += 'oauth2-client RedirectService redirectWithCodeUrl(code:string)  nomeSistema = '+nomeSistema+'\n';
           AuthenticationService.contentLogger += 'oauth2-client RedirectService redirectWithCodeUrl(code:string)  base_auth = '+base_auth+'\n';
-          this.authenticationService.redirectUserTokenAccess(base_auth[0], localStorage.getItem('client_id'),'CPD',code,
+          this.authenticationService.redirectUserTokenAccess(base_auth[0], AuthenticationService.currentUser.client_id,'CPD',code,
               'authorization_code','/'+nomeSistema[0]+'/index.html/' )
             .subscribe(resultado => {
             },
