@@ -3,29 +3,55 @@ import {AuthenticationService} from "../_services/authentication.service";
 
 @Component({
   selector: 'app-navigation',
-  template: `
-    <nav class="navbar navbar-inverse">
-       <div class="fundo">
-         <div>
-            <div class="container">
-                <div class="col-sm-8">
-                  <div class="logo"></div>
-                  <div class="sistema">
-                  </div>
-                </div>
-                <div class="col-sm-2" *ngIf="verificarUsuarioLogado()">
-                  <div class="login"> <h5 style="color: #FFFFFF;" class="login"> Seja bem vindo {{ name_user }} <br/>
-                    <a class="cor-branca" (click)="logout()">Logout</a></h5> </div>
-                </div>
-                <div class="col-sm-2" *ngIf="verificarUsuarioLogado()">
-                  <div class="login"><h5 class="cor-branca login">Tempo de sessão </h5></div>
-                  <p class="cor-branca" style="text-align: center;">{{this.authenticationService.time | date:"mm:ss"}}</p>
-                </div>
-            </div>
-         </div>
-        </div>
-     </nav> `,
-  styles: [`
+  template:
+    `
+    <!-- User Info -->
+		<div class="user-info" *ngIf="verificarUsuarioLogado()">
+			<div class="image">
+				<img src="images/user.png" width="48" height="48" alt="User" />
+        {{this.authenticationService.time | date:"mm:ss"}}
+			</div>
+			<div class="info-container">
+				<div class="name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ name_user }}</div>
+				<div class="email">john.doe@example.com</div>
+				<div class="btn-group user-helper-dropdown">
+					<i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
+					<ul class="dropdown-menu pull-right">
+						<li>
+							<a href="javascript:void(0);">
+								<i class="material-icons">person</i>Profile
+							</a>
+						</li>
+						<li role="seperator" class="divider"></li>
+						<li>
+							<a href="javascript:void(0);">
+								<i class="material-icons">group</i>Followers
+							</a>
+						</li>
+						<li>
+							<a href="javascript:void(0);">
+								<i class="material-icons">shopping_cart</i>Sales
+							</a>
+						</li>
+						<li>
+							<a href="javascript:void(0);">
+								<i class="material-icons">favorite</i>Likes
+							</a>
+						</li>
+						<li role="seperator" class="divider"></li>
+						<li>
+							<a href="javascript:void(0);" (click)="logout()">
+								<i class="material-icons">input</i>Sign Out
+							</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!-- #User Info -->
+    `,
+  styles: [
+    `
       .logo {
         order: 1;
         flex: 1;
@@ -34,47 +60,49 @@ import {AuthenticationService} from "../_services/authentication.service";
         background: url(assets/img/logo-unb.gif) 10px center no-repeat transparent;
         height: 62px;
         margin: 0 auto;
-      
+
       }
-      
+
       .active > a,
       .active > a:hover,
       .active > a:focus {
         color: #FFFFFF;
         background: rgba(181, 176, 183, 0.57);
       }
-      
+
       li > a:hover, li > a:focus {
         color: #FFFFFF;
       }
-      
+
       .cor-branca {
         color: #FFFFFF;
       }
-      
-      
+
+
       .fundo{
         background-color: #003366;
       }
-      
-      
+
+
       .sistema {
         text-align: center;
         margin-left: 200px;
       }
-      
+
       .login {
         order: 3;
         flex: 1 ;
         align-self: auto;
         text-align: center;
       }
-      
+
       @media screen and (max-width : 765px) {
         .sistema {
             margin-left: 30px;
         }
-      }`]
+      }
+    `
+  ]
 })
 export class NavigationComponent implements OnInit {
 
