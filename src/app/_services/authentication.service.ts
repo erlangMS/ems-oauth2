@@ -29,6 +29,7 @@ export class AuthenticationService implements OnInit {
         refresh_token: '',
         client_secret: '',
         expires_in: ''
+
     }
 
     public nomeDoSistema:any = "";
@@ -172,14 +173,16 @@ export class AuthenticationService implements OnInit {
         this.cancelPeriodicIncrement ();
         if (AuthenticationService.currentUser.timer) {
             let timeAccess = Date.now ();
+
             sessionTime = this.initialTime * 1000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
+
             sessionTime = sessionTime / 1000;
             this.initialTime = sessionTime;
         }
         this.time = this.initialTime * 1000;
 
         this.intervalId = setInterval (() => {
-            if (this.time < 1000) {
+            if (this.time < 500000) {
                 if(AuthenticationService.currentUser.refresh_token){
                     AuthenticationService.currentUser.token = '';
                     clearInterval(this.intervalId);
@@ -205,10 +208,13 @@ export class AuthenticationService implements OnInit {
         DefaultHeaders.headers.delete ("content-type");
 -       DefaultHeaders.headers.append ("Authorization", "Basic " + btoa (AuthenticationService.currentUser.client_id + ":CPD"));
         DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
-        return this.http.post(this.url_default+'/authorize','grant_type=' + grant_type + '&refresh_token='+AuthenticationService.currentUser.refresh_token)
+
+        return this.http.post(AuthenticationService.base_url+'/authorize','grant_type=' + grant_type + '&refresh_token='+AuthenticationService.currentUser.refresh_token)
         .map((resposta: any)=>{
             let token = resposta.json();
             AuthenticationService.currentUser.timer = null;
+            let localDateTime = Date.now ();
+            AuthenticationService.currentUser.timer = localDateTime.toString();
             AuthenticationService.currentUser.token = token.access_token;
             AuthenticationService.currentUser.resource_owner = token.resource_owner;
             AuthenticationService.currentUser.expires_in = token.expires_in;

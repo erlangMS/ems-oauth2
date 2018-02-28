@@ -9,14 +9,19 @@ import { CookieService } from '../_cookie/cookie.service';
 @Injectable()
 export class RedirectService implements OnDestroy {
 
+    private initialTime: number = 360000;
     public localDateTime: number;
     private auth_url:string = '';
-    private nomeDoSistema:any = '';
+    private result:any = '';
 
     constructor(private authenticationService: AuthenticationService, private loggerService: LoggerService,
                 private cookieService: CookieService){
-                 
-                   
+                    
+                 this.authenticationService.getUrl()
+                    .subscribe(result =>{
+                        console.log(result + "   Funcionou");
+                        this.result = result;
+                    });
     }
 
     startRedirectFromBarramento(){
@@ -28,12 +33,9 @@ export class RedirectService implements OnDestroy {
         } */
         let urlName = window.location.href.split('/');
 
-        this.authenticationService.getUrl()
-            .subscribe(result =>{
-                 this.authenticationService.getClientCode(urlName[3])
-                  .subscribe(res => {
-                    AuthenticationService.contentLogger += 'oauth2-client RedirectService startRedirectFromBarramento()  result = '+result+'\n';
-                    this.auth_url= result.url;
+            this.authenticationService.getClientCode(urlName[3])
+                .subscribe(res => {
+                    this.auth_url= this.result.url;
                     if(AuthenticationService.activatedSystem){
                         this.startInitVerifySessionToken(); 
                     } else {
@@ -45,8 +47,8 @@ export class RedirectService implements OnDestroy {
                             
                         }
                     }
-                  });      
-              });
+            });      
+
 
 
   }
@@ -59,7 +61,9 @@ export class RedirectService implements OnDestroy {
             let timeAccess = Date.now();
             let total = timeAccess - Number(AuthenticationService.currentUser.timer);
             AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken()  localStorage.getItem("dateAccessPage") = '+localStorage.getItem("dateAccessPage")+'\n';
+
             if(total > AuthenticationService.currentUser.expires_in * 1000){
+
               AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if(total > 360000) \n';
                 this.authenticationService.reset();
             }
