@@ -8,7 +8,7 @@ import { CookieService } from '../_cookie/cookie.service';
 @Injectable()
 export class RedirectService implements OnDestroy {
 
-    private initialTime: number = 3600;
+    private initialTime: number = 360000;
     public localDateTime: number;
     private auth_url:string = '';
 
@@ -46,7 +46,7 @@ export class RedirectService implements OnDestroy {
             let timeAccess = Date.now();
             let total = timeAccess - Number(AuthenticationService.currentUser.timer);
             AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken()  localStorage.getItem("dateAccessPage") = '+localStorage.getItem("dateAccessPage")+'\n';
-            if(total > 36000){
+            if(total > 3600000){
               AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if(total > 360000) \n';
                 this.authenticationService.reset();
             }

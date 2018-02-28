@@ -25,7 +25,8 @@ export class AuthenticationService implements OnInit {
         timer: '',
         resource_owner: '',
         refresh_token: '',
-        client_secret: ''
+        client_secret: '',
+        default_host: ''
     }
 
     public nomeDoSistema:any = "";
@@ -165,13 +166,13 @@ export class AuthenticationService implements OnInit {
         this.cancelPeriodicIncrement ();
         if (AuthenticationService.currentUser.timer) {
             let timeAccess = Date.now ();
-            sessionTime = 360000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
+            sessionTime = 3600000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
             sessionTime = sessionTime / 1000;
         }
         this.time = sessionTime * 1000;
 
         this.intervalId = setInterval (() => {
-            if (this.time < 1000) {
+            if (this.time < 500000) {
                 if(AuthenticationService.currentUser.refresh_token){
                     AuthenticationService.currentUser.token = '';
                     clearInterval(this.intervalId);
@@ -198,11 +199,14 @@ export class AuthenticationService implements OnInit {
         DefaultHeaders.headers.delete ("content-type");
 -       DefaultHeaders.headers.append ("Authorization", "Basic " + btoa (AuthenticationService.currentUser.client_id + ":CPD"));
         DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
-        return this.http.post('/authorize','grant_type=' + grant_type + '&refresh_token='+AuthenticationService.currentUser.refresh_token)
+        return this.http.post(AuthenticationService.base_url+'/authorize','grant_type=' + grant_type + '&refresh_token='+AuthenticationService.currentUser.refresh_token)
         .map((resposta: any)=>{
             let token = resposta.json();
             AuthenticationService.currentUser.timer = null;
+            let localDateTime = Date.now ();
+            AuthenticationService.currentUser.timer = localDateTime.toString();
             AuthenticationService.currentUser.token = token.access_token;
+            localStorage.setItem(this.nomeDoSistema,JSON.stringify(AuthenticationService.currentUser));
             DefaultHeaders.headers.delete ("Authorization");
             DefaultHeaders.headers.delete ('content-type');
             DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
