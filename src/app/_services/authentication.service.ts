@@ -1,11 +1,11 @@
 import {Injectable, OnInit} from '@angular/core';
-import {Http} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/catch';
 import {DefaultHeaders} from "../_headers/default.headers";
 import { CookieService } from '../_cookie/cookie.service';
+import { HttpService } from '../_http/http.service';
 
 
 @Injectable ()
@@ -17,6 +17,8 @@ export class AuthenticationService implements OnInit {
     public static contentLogger:string = "";
     public static port_server:string = '';
     public static base_url:string = '';
+    public url_default:string = '';
+    public static activatedSystem = true;
     public static currentUser:any = {
         token: '',
         user: '',
@@ -25,12 +27,13 @@ export class AuthenticationService implements OnInit {
         timer: '',
         resource_owner: '',
         refresh_token: '',
-        client_secret: ''
+        client_secret: '',
+        expires_in: ''
     }
 
     public nomeDoSistema:any = "";
 
-    constructor (private http:Http, private cookieService:CookieService) {
+    constructor (private http:HttpService, private cookieService:CookieService) {
         let url = window.location.href;
         let array = url.split ('/');
         this.nomeDoSistema = array[3].split('#');
@@ -44,6 +47,7 @@ export class AuthenticationService implements OnInit {
             AuthenticationService.currentUser.timer = variaveisSistema.timer;
             AuthenticationService.currentUser.resource_owner = variaveisSistema.resource_owner;
             AuthenticationService.currentUser.refresh_token = variaveisSistema.resource_owner.refresh_token;
+            AuthenticationService.currentUser.expires_in = variaveisSistema.resource_owner.expires_in;
         
         }
     }
@@ -71,6 +75,7 @@ export class AuthenticationService implements OnInit {
                 DefaultHeaders.host = json.base_url;
                 let url =  json.auth_url + '?response_type=code&client_id=' + AuthenticationService.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+nomeSistema[0]+"/index.html/";
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() url = '+url+'\n';
+                this.url_default = json.base_url;
                 return {url: url};
             }).catch((e:any) => {
                 return Observable.throw(
@@ -95,6 +100,7 @@ export class AuthenticationService implements OnInit {
                 this.nomeDoSistema = client;
                 let json = resposta.json ();
                 AuthenticationService.currentUser.client_id = json[0].id;
+                AuthenticationService.activatedSystem = json[0].active;
                 return {code: json[0].id}
             }).catch((e:any) => {
                 return Observable.throw(
@@ -129,7 +135,6 @@ export class AuthenticationService implements OnInit {
                 AuthenticationService.currentUser.token = resp.access_token;
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService redirectUserTokenAccess() resp.access_token'+resp.access_token+'\n';
                 this.cookieService.setCookie("token",AuthenticationService.currentUser.token,this.initialTime,'/',dominio[0],false);
-                this.periodicIncrement (this.initialTime);
                 let localDateTime = Date.now ();
                 AuthenticationService.currentUser.timer = localDateTime.toString();
                 this.addValueUser(resp);
@@ -156,6 +161,8 @@ export class AuthenticationService implements OnInit {
         AuthenticationService.currentUser.user = login;
         AuthenticationService.currentUser.resource_owner = resp.resource_owner;
         AuthenticationService.currentUser.refresh_token = resp.refresh_token;
+        AuthenticationService.currentUser.expires_in = resp.expires_in;
+        this.periodicIncrement(AuthenticationService.currentUser.expires_in);
         localStorage.setItem(this.nomeDoSistema,JSON.stringify(AuthenticationService.currentUser));
 
     }
@@ -165,10 +172,11 @@ export class AuthenticationService implements OnInit {
         this.cancelPeriodicIncrement ();
         if (AuthenticationService.currentUser.timer) {
             let timeAccess = Date.now ();
-            sessionTime = 360000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
+            sessionTime = this.initialTime * 1000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
             sessionTime = sessionTime / 1000;
+            this.initialTime = sessionTime;
         }
-        this.time = sessionTime * 1000;
+        this.time = this.initialTime * 1000;
 
         this.intervalId = setInterval (() => {
             if (this.time < 1000) {
@@ -177,7 +185,6 @@ export class AuthenticationService implements OnInit {
                     clearInterval(this.intervalId);
                     this.refreshSessionTime('refresh_token')
                     .subscribe((validado)=>{
-                        console.log("validado",validado);
                     })
                 }else{
                     this.logout ();
@@ -198,15 +205,19 @@ export class AuthenticationService implements OnInit {
         DefaultHeaders.headers.delete ("content-type");
 -       DefaultHeaders.headers.append ("Authorization", "Basic " + btoa (AuthenticationService.currentUser.client_id + ":CPD"));
         DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
-        return this.http.post('/authorize','grant_type=' + grant_type + '&refresh_token='+AuthenticationService.currentUser.refresh_token)
+        return this.http.post(this.url_default+'/authorize','grant_type=' + grant_type + '&refresh_token='+AuthenticationService.currentUser.refresh_token)
         .map((resposta: any)=>{
             let token = resposta.json();
             AuthenticationService.currentUser.timer = null;
             AuthenticationService.currentUser.token = token.access_token;
+            AuthenticationService.currentUser.resource_owner = token.resource_owner;
+            AuthenticationService.currentUser.expires_in = token.expires_in;
+            localStorage.removeItem(this.nomeDoSistema);
+            localStorage.setItem(this.nomeDoSistema,JSON.stringify(AuthenticationService.currentUser));
             DefaultHeaders.headers.delete ("Authorization");
             DefaultHeaders.headers.delete ('content-type');
             DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
-            this.periodicIncrement(this.initialTime);
+            this.periodicIncrement(AuthenticationService.currentUser.expires_in);
         }).catch((e:any) => {
             return Observable.throw(
               new Error(`${ e.status } ${ e.statusText }`)
