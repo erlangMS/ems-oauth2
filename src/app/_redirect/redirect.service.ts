@@ -11,9 +11,16 @@ export class RedirectService implements OnDestroy {
     private initialTime: number = 360000;
     public localDateTime: number;
     private auth_url:string = '';
+    private result:any = '';
 
     constructor(private authenticationService: AuthenticationService, private loggerService: LoggerService,
                 private cookieService: CookieService){
+                    
+                 this.authenticationService.getUrl()
+                    .subscribe(result =>{
+                        console.log(result + "   Funcionou");
+                        this.result = result;
+                    });
     }
 
     startRedirectFromBarramento(){
@@ -25,15 +32,11 @@ export class RedirectService implements OnDestroy {
         } */
         let urlName = window.location.href.split('/');
 
-        this.authenticationService.getUrl()
-            .subscribe(result =>{
-                 this.authenticationService.getClientCode(urlName[3])
-                  .subscribe(res => {
-                    AuthenticationService.contentLogger += 'oauth2-client RedirectService startRedirectFromBarramento()  result = '+result+'\n';
-                    this.auth_url= result.url;
+            this.authenticationService.getClientCode(urlName[3])
+                .subscribe(res => {
+                    this.auth_url= this.result.url;
                     this.startInitVerifySessionToken(); 
-                  });      
-              });
+            });      
 
 
   }
