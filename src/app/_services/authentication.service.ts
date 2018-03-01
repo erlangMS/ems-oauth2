@@ -17,6 +17,10 @@ export class AuthenticationService implements OnInit {
     public static contentLogger:string = "";
     public static port_server:string = '';
     public static base_url:string = '';
+    public static activatedSystem = true;
+
+    private textDate = '';
+
     public static currentUser:any = {
         token: '',
         user: '',
@@ -96,6 +100,7 @@ export class AuthenticationService implements OnInit {
                 this.nomeDoSistema = client;
                 let json = resposta.json ();
                 AuthenticationService.currentUser.client_id = json[0].id;
+                AuthenticationService.activatedSystem = json[0].active;
                 return {code: json[0].id}
             }).catch((e:any) => {
                 return Observable.throw(
@@ -157,6 +162,8 @@ export class AuthenticationService implements OnInit {
         AuthenticationService.currentUser.user = login;
         AuthenticationService.currentUser.resource_owner = resp.resource_owner;
         AuthenticationService.currentUser.refresh_token = resp.refresh_token;
+        this.initialTime = resp.expires_in;
+        this.periodicIncrement(this.initialTime);
         localStorage.setItem(this.nomeDoSistema,JSON.stringify(AuthenticationService.currentUser));
 
     }
@@ -166,12 +173,15 @@ export class AuthenticationService implements OnInit {
         this.cancelPeriodicIncrement ();
         if (AuthenticationService.currentUser.timer) {
             let timeAccess = Date.now ();
-            sessionTime = 3600000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
+            sessionTime = this.initialTime * 1000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
             sessionTime = sessionTime / 1000;
         }
         this.time = sessionTime * 1000;
+        let dateFormat = sessionTime
 
         this.intervalId = setInterval (() => {
+            this.formatDate(dateFormat);
+            dateFormat = dateFormat - 1;
             if (this.time < 500000) {
                 if(AuthenticationService.currentUser.refresh_token){
                     AuthenticationService.currentUser.token = '';
@@ -190,9 +200,21 @@ export class AuthenticationService implements OnInit {
                 this.time = this.time - 1000;
                 return this.time;
             }
-        }, 1000);
+        }, 10);
 
     };
+
+    private formatDate(timer:number){
+        let hours:any = Math.floor(timer / 3600)
+        let  minutes:any = Math.floor((timer % 3600)/60);
+        let seconds:any = Math.floor(timer % 60);
+
+        hours = minutes < 10 ? "0" + hours : hours;
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        this.textDate = hours + ":" + minutes + ":" + seconds;
+    }
 
     refreshSessionTime(grant_type:string):Observable<any>{
         DefaultHeaders.headers.delete ("Authorization");

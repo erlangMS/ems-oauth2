@@ -18,7 +18,6 @@ export class RedirectService implements OnDestroy {
                     
                  this.authenticationService.getUrl()
                     .subscribe(result =>{
-                        console.log(result + "   Funcionou");
                         this.result = result;
                     });
     }
@@ -35,7 +34,18 @@ export class RedirectService implements OnDestroy {
             this.authenticationService.getClientCode(urlName[3])
                 .subscribe(res => {
                     this.auth_url= this.result.url;
-                    this.startInitVerifySessionToken(); 
+                    if(AuthenticationService.activatedSystem){
+                        this.startInitVerifySessionToken(); 
+                    } else {
+                        localStorage.removeItem(urlName[3]);
+                        localStorage.removeItem('erlangms_actualRoute_'+urlName[3]);
+                        var myVal = document.getElementById("inativatedApplication");
+                        if(myVal != null){
+                           myVal.innerHTML = `
+                                 <h2>Sistema temporariamente indisponível.</h2>
+                                `    
+                        }
+                    } 
             });      
 
 
