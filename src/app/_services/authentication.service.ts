@@ -10,7 +10,6 @@ import { CookieService } from '../_cookie/cookie.service';
 
 @Injectable ()
 export class AuthenticationService implements OnInit {
-    private initialTime = 3600;
     public time:number = 0;
     intervalId:any = null;
     static client_secret:string = "";
@@ -30,7 +29,8 @@ export class AuthenticationService implements OnInit {
         resource_owner: '',
         refresh_token: '',
         client_secret: '',
-        default_host: ''
+        default_host: '',
+        expires_in: 3600
     }
 
     public nomeDoSistema:any = "";
@@ -49,6 +49,7 @@ export class AuthenticationService implements OnInit {
             AuthenticationService.currentUser.timer = variaveisSistema.timer;
             AuthenticationService.currentUser.resource_owner = variaveisSistema.resource_owner;
             AuthenticationService.currentUser.refresh_token = variaveisSistema.resource_owner.refresh_token;
+            AuthenticationService.currentUser.expires_in = variaveisSistema.expires_in;
         
         }
     }
@@ -134,12 +135,12 @@ export class AuthenticationService implements OnInit {
                 let dominio = array[2].split(':');
                 AuthenticationService.currentUser.token = resp.access_token;
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService redirectUserTokenAccess() resp.access_token'+resp.access_token+'\n';
-                this.cookieService.setCookie("token",AuthenticationService.currentUser.token,this.initialTime,'/',dominio[0],false);
-                this.periodicIncrement (this.initialTime);
+                this.cookieService.setCookie("token",AuthenticationService.currentUser.token,AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
+                this.periodicIncrement (AuthenticationService.currentUser.expires_in);
                 let localDateTime = Date.now ();
                 AuthenticationService.currentUser.timer = localDateTime.toString();
                 this.addValueUser(resp);
-                this.cookieService.setCookie("dateAccessPage",localDateTime.toString(),this.initialTime,'/',dominio[0],false);
+                this.cookieService.setCookie("dateAccessPage",localDateTime.toString(),AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
                 DefaultHeaders.headers.delete ('content-type');
                 DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
 
@@ -162,8 +163,8 @@ export class AuthenticationService implements OnInit {
         AuthenticationService.currentUser.user = login;
         AuthenticationService.currentUser.resource_owner = resp.resource_owner;
         AuthenticationService.currentUser.refresh_token = resp.refresh_token;
-        this.initialTime = resp.expires_in;
-        this.periodicIncrement(this.initialTime);
+        AuthenticationService.currentUser.expires_in = resp.expires_in;
+        this.periodicIncrement(AuthenticationService.currentUser.expires_in);
         localStorage.setItem(this.nomeDoSistema,JSON.stringify(AuthenticationService.currentUser));
 
     }
@@ -173,14 +174,17 @@ export class AuthenticationService implements OnInit {
         this.cancelPeriodicIncrement ();
         if (AuthenticationService.currentUser.timer) {
             let timeAccess = Date.now ();
-            sessionTime = this.initialTime * 1000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
+            sessionTime = AuthenticationService.currentUser.expires_in * 1000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
             sessionTime = sessionTime / 1000;
         }
         this.time = sessionTime * 1000;
         let dateFormat = sessionTime
 
         this.intervalId = setInterval (() => {
-            this.formatDate(dateFormat);
+            this.textDate = this.formatDate(dateFormat);
+            if(this.textDate == 'NaN:NaN:NaN'){
+               this.textDate = this.formatDate(dateFormat); 
+            }
             dateFormat = dateFormat - 1;
             if (this.time < 500000) {
                 if(AuthenticationService.currentUser.refresh_token){
@@ -200,11 +204,11 @@ export class AuthenticationService implements OnInit {
                 this.time = this.time - 1000;
                 return this.time;
             }
-        }, 10);
+        }, 1000);
 
     };
 
-    private formatDate(timer:number){
+    private formatDate(timer:number):string{
         let hours:any = Math.floor(timer / 3600)
         let  minutes:any = Math.floor((timer % 3600)/60);
         let seconds:any = Math.floor(timer % 60);
@@ -213,7 +217,7 @@ export class AuthenticationService implements OnInit {
         minutes = minutes < 10 ? "0" + minutes : minutes;
         seconds = seconds < 10 ? "0" + seconds : seconds;
 
-        this.textDate = hours + ":" + minutes + ":" + seconds;
+       return  hours + ":" + minutes + ":" + seconds;
     }
 
     refreshSessionTime(grant_type:string):Observable<any>{
@@ -232,7 +236,7 @@ export class AuthenticationService implements OnInit {
             DefaultHeaders.headers.delete ("Authorization");
             DefaultHeaders.headers.delete ('content-type');
             DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
-            this.periodicIncrement(this.initialTime);
+            this.periodicIncrement(AuthenticationService.currentUser.expires_in);
         }).catch((e:any) => {
             return Observable.throw(
               new Error(`${ e.status } ${ e.statusText }`)
@@ -260,8 +264,8 @@ export class AuthenticationService implements OnInit {
                 .subscribe (resultado => {
                     this.cancelPeriodicIncrement ();
                     localStorage.removeItem (this.nomeDoSistema);
-                    this.cookieService.setCookie("token",' ',this.initialTime,'/',dominio[0],false);
-                    this.cookieService.setCookie("dateAccessPage",' ',this.initialTime,'/',dominio[0],false);
+                    this.cookieService.setCookie("token",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
+                    this.cookieService.setCookie("dateAccessPage",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
                     AuthenticationService.currentUser = {
                         token: '',
                         user: '',
@@ -280,8 +284,8 @@ export class AuthenticationService implements OnInit {
 
         this.cancelPeriodicIncrement ();
         localStorage.removeItem (this.nomeDoSistema);
-        this.cookieService.setCookie("token",' ',this.initialTime,'/',dominio[0],false);
-        this.cookieService.setCookie("dateAccessPage",' ',this.initialTime,'/',dominio[0],false);
+        this.cookieService.setCookie("token",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
+        this.cookieService.setCookie("dateAccessPage",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
         AuthenticationService.currentUser = {
             token: '',
             user: '',
