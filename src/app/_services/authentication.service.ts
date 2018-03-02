@@ -78,13 +78,7 @@ export class AuthenticationService implements OnInit {
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() url = '+url+'\n';
                 this.url_default = json.base_url;
                 return {url: url};
-            }).catch((e:any) => {
-                return Observable.throw(
-                  new Error(`${ e.status } ${ e.statusText }`)
-                );
-            })
-            .publishReplay(1)
-            .refCount();
+            });
     }
 
     getClientCode (client:string):Observable<any> {
@@ -103,13 +97,7 @@ export class AuthenticationService implements OnInit {
                 AuthenticationService.currentUser.client_id = json[0].id;
                 AuthenticationService.activatedSystem = json[0].active;
                 return {code: json[0].id}
-            }).catch((e:any) => {
-                return Observable.throw(
-                  new Error(`${ e.status } ${ e.statusText }`)
-                );
-            })
-            .publishReplay(1)
-            .refCount();
+            });
 
     }
 
@@ -144,13 +132,7 @@ export class AuthenticationService implements OnInit {
                 DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
 
                 return true;
-            }).catch((e:any) => {
-                return Observable.throw(
-                  new Error(`${ e.status } ${ e.statusText }`)
-                );
-            })
-            .publishReplay(1)
-            .refCount();
+            });
     }
 
     private addValueUser(resp:any){
@@ -224,12 +206,7 @@ export class AuthenticationService implements OnInit {
             DefaultHeaders.headers.delete ('content-type');
             DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
             this.periodicIncrement(AuthenticationService.currentUser.expires_in);
-        }).catch((e:any) => {
-            return Observable.throw(
-              new Error(`${ e.status } ${ e.statusText }`)
-            );
-        }).publishReplay(1)
-        .refCount();
+        });
     }
 
     cancelPeriodicIncrement ():void {
@@ -293,12 +270,7 @@ export class AuthenticationService implements OnInit {
                 AuthenticationService.currentUser.resource_owner = resp.resource_owner;
                 AuthenticationService.currentUser.user = login;
                 AuthenticationService.currentUser.codigo = idPessoa;
-               }).catch((e:any) => {
-                return Observable.throw(
-                  new Error(`${ e.status } ${ e.statusText }`)
-                );
-            }).publishReplay(1)
-               .refCount();
+               });
     }
 
 
