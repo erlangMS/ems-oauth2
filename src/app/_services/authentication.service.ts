@@ -10,15 +10,15 @@ import { HttpService } from '../_http/http.service';
 
 @Injectable ()
 export class AuthenticationService implements OnInit {
-    private initialTime = 3600;
     public time:number = 0;
     intervalId:any = null;
     static client_secret:string = "";
     public static contentLogger:string = "";
     public static port_server:string = '';
     public static base_url:string = '';
-    public url_default:string = '';
     public static activatedSystem = true;
+    private textDate = '';
+
     public static currentUser:any = {
         token: '',
         user: '',
@@ -28,7 +28,8 @@ export class AuthenticationService implements OnInit {
         resource_owner: '',
         refresh_token: '',
         client_secret: '',
-        expires_in: ''
+        default_host: '',
+        expires_in: 3600
 
     }
 
@@ -48,7 +49,7 @@ export class AuthenticationService implements OnInit {
             AuthenticationService.currentUser.timer = variaveisSistema.timer;
             AuthenticationService.currentUser.resource_owner = variaveisSistema.resource_owner;
             AuthenticationService.currentUser.refresh_token = variaveisSistema.resource_owner.refresh_token;
-            AuthenticationService.currentUser.expires_in = variaveisSistema.resource_owner.expires_in;
+            AuthenticationService.currentUser.expires_in = variaveisSistema.expires_in;
         
         }
     }
@@ -76,7 +77,6 @@ export class AuthenticationService implements OnInit {
                 DefaultHeaders.host = json.base_url;
                 let url =  json.auth_url + '?response_type=code&client_id=' + AuthenticationService.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+nomeSistema[0]+"/index.html/";
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() url = '+url+'\n';
-                this.url_default = json.base_url;
                 return {url: url};
             });
     }
@@ -123,11 +123,12 @@ export class AuthenticationService implements OnInit {
                 let dominio = array[2].split(':');
                 AuthenticationService.currentUser.token = resp.access_token;
                 AuthenticationService.contentLogger += 'oauth2-client AuthenticationService redirectUserTokenAccess() resp.access_token'+resp.access_token+'\n';
-                this.cookieService.setCookie("token",AuthenticationService.currentUser.token,this.initialTime,'/',dominio[0],false);
+                this.cookieService.setCookie("token",AuthenticationService.currentUser.token,AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
+                this.periodicIncrement (AuthenticationService.currentUser.expires_in);
                 let localDateTime = Date.now ();
                 AuthenticationService.currentUser.timer = localDateTime.toString();
                 this.addValueUser(resp);
-                this.cookieService.setCookie("dateAccessPage",localDateTime.toString(),this.initialTime,'/',dominio[0],false);
+                this.cookieService.setCookie("dateAccessPage",localDateTime.toString(),AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
                 DefaultHeaders.headers.delete ('content-type');
                 DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
 
@@ -155,15 +156,19 @@ export class AuthenticationService implements OnInit {
         this.cancelPeriodicIncrement ();
         if (AuthenticationService.currentUser.timer) {
             let timeAccess = Date.now ();
-
-            sessionTime = this.initialTime * 1000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
-
+            sessionTime = AuthenticationService.currentUser.expires_in * 1000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
             sessionTime = sessionTime / 1000;
-            this.initialTime = sessionTime;
         }
-        this.time = this.initialTime * 1000;
+
+        this.time = sessionTime * 1000;
+        let dateFormat = sessionTime
 
         this.intervalId = setInterval (() => {
+            this.textDate = this.formatDate(dateFormat);
+            if(this.textDate == 'NaN:NaN:NaN'){
+               this.textDate = this.formatDate(dateFormat); 
+            }
+            dateFormat = dateFormat - 1;
             if (this.time < 500000) {
                 if(AuthenticationService.currentUser.refresh_token){
                     AuthenticationService.currentUser.token = '';
@@ -184,6 +189,18 @@ export class AuthenticationService implements OnInit {
         }, 1000);
 
     };
+
+    private formatDate(timer:number):string{
+        let hours:any = Math.floor(timer / 3600)
+        let  minutes:any = Math.floor((timer % 3600)/60);
+        let seconds:any = Math.floor(timer % 60);
+
+        hours = minutes < 10 ? "0" + hours : hours;
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+       return  hours + ":" + minutes + ":" + seconds;
+    }
 
     refreshSessionTime(grant_type:string):Observable<any>{
         DefaultHeaders.headers.delete ("Authorization");
@@ -207,6 +224,7 @@ export class AuthenticationService implements OnInit {
             DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
             this.periodicIncrement(AuthenticationService.currentUser.expires_in);
         });
+
     }
 
     cancelPeriodicIncrement ():void {
@@ -228,8 +246,8 @@ export class AuthenticationService implements OnInit {
                 .subscribe (resultado => {
                     this.cancelPeriodicIncrement ();
                     localStorage.removeItem (this.nomeDoSistema);
-                    this.cookieService.setCookie("token",' ',this.initialTime,'/',dominio[0],false);
-                    this.cookieService.setCookie("dateAccessPage",' ',this.initialTime,'/',dominio[0],false);
+                    this.cookieService.setCookie("token",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
+                    this.cookieService.setCookie("dateAccessPage",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
                     AuthenticationService.currentUser = {
                         token: '',
                         user: '',
@@ -248,8 +266,8 @@ export class AuthenticationService implements OnInit {
 
         this.cancelPeriodicIncrement ();
         localStorage.removeItem (this.nomeDoSistema);
-        this.cookieService.setCookie("token",' ',this.initialTime,'/',dominio[0],false);
-        this.cookieService.setCookie("dateAccessPage",' ',this.initialTime,'/',dominio[0],false);
+        this.cookieService.setCookie("token",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
+        this.cookieService.setCookie("dateAccessPage",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
         AuthenticationService.currentUser = {
             token: '',
             user: '',

@@ -8,7 +8,6 @@ import { CookieService } from '../_cookie/cookie.service';
 @Injectable()
 export class RedirectService implements OnDestroy {
 
-    private initialTime: number = 360000;
     public localDateTime: number;
     private auth_url:string = '';
     private result:any = '';
@@ -37,19 +36,20 @@ export class RedirectService implements OnDestroy {
                     if(AuthenticationService.activatedSystem){
                         this.startInitVerifySessionToken(); 
                     } else {
+                        localStorage.removeItem(urlName[3]);
+                        localStorage.removeItem('erlangms_actualRoute_'+urlName[3]);
                         var myVal = document.getElementById("inativatedApplication");
                         if(myVal != null){
                            myVal.innerHTML = `
                                  <h2>Sistema temporariamente indisponível.</h2>
                                 `
-                            
+                          
                         }
                     }
+
             });      
-
-
-
   }
+
 
     startInitVerifySessionToken() {
         if(AuthenticationService.currentUser.token && AuthenticationService.currentUser.timer){
@@ -64,6 +64,7 @@ export class RedirectService implements OnDestroy {
                     this.authenticationService.periodicIncrement(AuthenticationService.currentUser.expires_in);
                     this.authenticationService.getClientCode(urlName[3])
                     .subscribe(res => {
+
                     
                      });
                 }

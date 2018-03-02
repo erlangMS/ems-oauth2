@@ -19,7 +19,7 @@ import {AuthenticationService} from "../_services/authentication.service";
                 </div>
                 <div class="col-sm-2" *ngIf="verificarUsuarioLogado()">
                   <div class="login"><h5 class="cor-branca login">Tempo de sessão </h5></div>
-                  <p class="cor-branca" style="text-align: center;">{{this.authenticationService.time | date:"mm:ss"}}</p>
+                  <p class="cor-branca" style="text-align: center;">{{this.authenticationService.textDate}}</p>
                 </div>
             </div>
          </div>
