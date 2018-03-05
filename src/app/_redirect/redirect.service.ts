@@ -8,12 +8,17 @@ import { CookieService } from '../_cookie/cookie.service';
 @Injectable()
 export class RedirectService implements OnDestroy {
 
-    private initialTime: number = 3600;
     public localDateTime: number;
     private auth_url:string = '';
+    private result:any = '';
 
     constructor(private authenticationService: AuthenticationService, private loggerService: LoggerService,
                 private cookieService: CookieService){
+                    
+                 this.authenticationService.getUrl()
+                    .subscribe(result =>{
+                        this.result = result;
+                    });
     }
 
     startRedirectFromBarramento(){
@@ -25,15 +30,22 @@ export class RedirectService implements OnDestroy {
         } */
         let urlName = window.location.href.split('/');
 
-        this.authenticationService.getUrl()
-            .subscribe(result =>{
-                 this.authenticationService.getClientCode(urlName[3])
-                  .subscribe(res => {
-                    AuthenticationService.contentLogger += 'oauth2-client RedirectService startRedirectFromBarramento()  result = '+result+'\n';
-                    this.auth_url= result.url;
-                    this.startInitVerifySessionToken(); 
-                  });      
-              });
+            this.authenticationService.getClientCode(urlName[3])
+                .subscribe(res => {
+                    this.auth_url= this.result.url;
+                    if(AuthenticationService.activatedSystem){
+                        this.startInitVerifySessionToken(); 
+                    } else {
+                        localStorage.removeItem(urlName[3]);
+                        localStorage.removeItem('erlangms_actualRoute_'+urlName[3]);
+                        var myVal = document.getElementById("inativatedApplication");
+                        if(myVal != null){
+                           myVal.innerHTML = `
+                                 <h2>Sistema temporariamente indisponível.</h2>
+                                `    
+                        }
+                    } 
+            });      
 
 
   }
@@ -46,7 +58,7 @@ export class RedirectService implements OnDestroy {
             let timeAccess = Date.now();
             let total = timeAccess - Number(AuthenticationService.currentUser.timer);
             AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken()  localStorage.getItem("dateAccessPage") = '+localStorage.getItem("dateAccessPage")+'\n';
-            if(total > 36000){
+            if(total > AuthenticationService.currentUser.expires_in * 1000){
               AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if(total > 360000) \n';
                 this.authenticationService.reset();
             }
@@ -55,7 +67,7 @@ export class RedirectService implements OnDestroy {
         if (AuthenticationService.currentUser.token) {
               let urlName = window.location.href.split('/');
               AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if (localStorage.getItem ("token"))   localStorage.getItem ("token") = '+localStorage.getItem ("token")+'\n';
-              this.authenticationService.periodicIncrement(this.initialTime);
+              this.authenticationService.periodicIncrement(AuthenticationService.currentUser.expires_in);
               this.authenticationService.getClientCode(urlName[3])
               .subscribe(res => {
                     
@@ -76,7 +88,7 @@ export class RedirectService implements OnDestroy {
                 AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if (AuthenticationService.currentUser.token == "") \n';
                 this.initVerificationRedirect ();
             } else {
-                this.authenticationService.periodicIncrement (this.initialTime);
+                this.authenticationService.periodicIncrement (AuthenticationService.currentUser.expires_in);
             }
         } else if (AuthenticationService.currentUser.token == '' && code != undefined) {
             AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside else if (AuthenticationService.currentUser.token == "" && code != undefined)  \n';
@@ -95,7 +107,7 @@ export class RedirectService implements OnDestroy {
         this.localDateTime = Number(AuthenticationService.currentUser.timer);
         AuthenticationService.contentLogger += 'oauth2-client RedirectService verifyTimeTokenExpired()  localStorage.getItem("dataAccessPage") = '+localStorage.getItem("dataAccessPage")+'\n';
         let value = dateSecoundAccess - this.localDateTime;
-        if (value >= (this.initialTime * 1000)) {
+        if (value >= (AuthenticationService.currentUser.expires_in * 1000)) {
             this.authenticationService.logout();
         }
     }
@@ -105,7 +117,7 @@ export class RedirectService implements OnDestroy {
             this.verifyTimeTokenExpired();
         }else{
             if(AuthenticationService.currentUser.token != '') {
-                this.authenticationService.periodicIncrement(this.initialTime);
+                this.authenticationService.periodicIncrement(AuthenticationService.currentUser.expires_in);
             } else {
                 this.authenticateClient();
             }
