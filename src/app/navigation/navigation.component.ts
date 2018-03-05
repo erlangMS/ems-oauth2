@@ -7,13 +7,25 @@ import {AuthenticationService} from "../_services/authentication.service";
     `
     <!-- User Info -->
 		<div class="user-info" *ngIf="verificarUsuarioLogado()">
-			<div class="image">
-				<img src="images/user.png" width="48" height="48" alt="User" />
-        {{this.authenticationService.time | date:"mm:ss"}}
-			</div>
+      <div class="image">
+        <img src="assets/images/user.png" width="48" height="48" alt="User" />
+      </div>
+      <div class="info-box bg-blue col-md-8">
+          <!--<div class="icon">
+              <i class="material-icons" id="ru-icon">refresh</i>
+          </div>-->
+          <div class="content m-l--20 m-t--5">
+              <div class="text">
+                TEMPO DE SESSÃO
+              </div>
+              <div class="number counter-to">
+                {{this.authenticationService.time | date:"mm:ss"}}
+              </div>
+          </div>
+        </div>
 			<div class="info-container">
-				<div class="name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ name_user }}</div>
-				<div class="email">john.doe@example.com</div>
+        <div class="name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ name_user }}</div>
+				<div class="email">email@unb.br</div>
 				<div class="btn-group user-helper-dropdown">
 					<i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
 					<ul class="dropdown-menu pull-right">
