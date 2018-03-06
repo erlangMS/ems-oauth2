@@ -125,16 +125,8 @@ export class RedirectService implements OnDestroy {
           this.authenticationService.redirectUserTokenAccess(base_auth[0], AuthenticationService.currentUser.client_id,'CPD',code,
               'authorization_code','/'+nomeSistema[0]+'/index.html/' )
             .subscribe(resultado => {
-            },
-            error => {
-             
-              this.loggerService.getTokenLogger()
-              .subscribe(result =>{
-                this.loggerService.sendLogger('error',  AuthenticationService.contentLogger)
-                .subscribe(resultado =>{
-                });
-              });
-        });
+                     
+            });
     }
 
     private authenticateClient(){
@@ -146,15 +138,7 @@ export class RedirectService implements OnDestroy {
                        let parts =this.auth_url.split('client_id=');
                        let number = parts[1].split('&');
                         window.location.href = parts[0]+'client_id='+res.code+'&'+number[1]+'&'+number[2];
-                  },
-                  error => {
-                    this.loggerService.getTokenLogger()
-                    .subscribe(result =>{
-                      this.loggerService.sendLogger('error',  AuthenticationService.contentLogger)
-                      .subscribe(resultado =>{
-                      });
                     });
-                });
         }
     }
 

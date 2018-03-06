@@ -14,7 +14,7 @@ import {AuthenticationService} from "../_services/authentication.service";
                   </div>
                 </div>
                 <div class="col-sm-2" *ngIf="verificarUsuarioLogado()">
-                  <div class="login"> <h5 style="color: #FFFFFF;" class="login"> Seja bem vindo {{ name_user }} <br/>
+                  <div class="login"> <h5 style="color: #FFFFFF;" class="login"> Seja bem vindo {{name_user}} <br/>
                     <a class="cor-branca" (click)="logout()">Logout</a></h5> </div>
                 </div>
                 <div class="col-sm-2" *ngIf="verificarUsuarioLogado()">
@@ -92,7 +92,7 @@ export class NavigationComponent implements OnInit {
   }
 
   verificarUsuarioLogado(){
-    if(AuthenticationService.currentUser.token != ""){
+    if(AuthenticationService.currentUser.token != "" && AuthenticationService.currentUser.token != undefined){
       this.name_user = AuthenticationService.currentUser.resource_owner.name;
       return true;
     }else {
