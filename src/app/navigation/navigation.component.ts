@@ -10,54 +10,26 @@ import {AuthenticationService} from "../_services/authentication.service";
       <div class="image">
         <img src="assets/images/user.png" width="48" height="48" alt="User" />
       </div>
-      <div class="info-box bg-blue col-md-8">
-          <!--<div class="icon">
-              <i class="material-icons" id="ru-icon">refresh</i>
-          </div>-->
-          <div class="content m-l--20 m-t--5">
-              <div class="text">
-                TEMPO DE SESSÃO
-              </div>
-              <div class="number counter-to">
-                {{this.authenticationService.time | date:"mm:ss"}}
-              </div>
+      <div class="info-box bg-blue hover-expand-effect">
+          <div class="icon">
+              <i class="material-icons">access_time</i>
           </div>
-        </div>
+          <div class="content">
+              <div class="text">TEMPO DE SESSÃO</div>
+              <div class="align-center number count-to" data-from="0" data-to="125" data-speed="1000" data-fresh-interval="20">{{this.authenticationService.time | date:"mm:ss"}}</div>
+          </div>
+      </div>
 			<div class="info-container">
         <div class="name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ name_user }}</div>
-				<div class="email">email@unb.br</div>
-				<div class="btn-group user-helper-dropdown">
-					<i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
-					<ul class="dropdown-menu pull-right">
-						<li>
-							<a href="javascript:void(0);">
-								<i class="material-icons">person</i>Profile
-							</a>
-						</li>
-						<li role="seperator" class="divider"></li>
-						<li>
-							<a href="javascript:void(0);">
-								<i class="material-icons">group</i>Followers
-							</a>
-						</li>
-						<li>
-							<a href="javascript:void(0);">
-								<i class="material-icons">shopping_cart</i>Sales
-							</a>
-						</li>
-						<li>
-							<a href="javascript:void(0);">
-								<i class="material-icons">favorite</i>Likes
-							</a>
-						</li>
-						<li role="seperator" class="divider"></li>
-						<li>
-							<a href="javascript:void(0);" (click)="logout()">
-								<i class="material-icons">input</i>Sign Out
-							</a>
-						</li>
-					</ul>
-				</div>
+        <div class="email">{{ email_user }}</div>
+        <div class="btn-group user-helper-dropdown">
+            <i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
+            <ul class="dropdown-menu pull-right">
+                <li><a href="javascript:void(0);"><i class="material-icons">person</i>Perfil</a></li>
+                <li role="seperator" class="divider"></li>
+                <li><a href="javascript:void(0);" (click)="logout()"><i class="material-icons">input</i>Sair</a></li>
+            </ul>
+        </div>
 			</div>
 		</div>
 		<!-- #User Info -->
@@ -119,6 +91,8 @@ import {AuthenticationService} from "../_services/authentication.service";
 export class NavigationComponent implements OnInit {
 
   private name_user:any = '';
+  private email_user:any = '';
+  private name_system:any = '';
 
   constructor(private authenticationService: AuthenticationService) { }
 
@@ -134,6 +108,8 @@ export class NavigationComponent implements OnInit {
   verificarUsuarioLogado(){
     if(AuthenticationService.currentUser.token != ""){
       this.name_user = AuthenticationService.currentUser.resource_owner.name;
+      this.email_user = AuthenticationService.currentUser.resource_owner.email;
+      this.name_system = this.authenticationService.nomeDoSistema;
       return true;
     }else {
       return false;
