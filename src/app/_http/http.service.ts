@@ -1,5 +1,5 @@
 import {Injectable, OnInit, Optional} from '@angular/core';
-import {Http} from '@angular/http';
+import {Http, Headers} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/catch';
@@ -19,29 +19,29 @@ export class HttpService extends ServiceUtil implements OnInit {
     }
 
 
-    get(url:string,@Optional() header:string=''):Observable<any>{
-        return this.http.get(this.criptografarUrl(url), header)
+    get(url:string,@Optional() header:Headers = new Headers()):Observable<any>{
+        return this.http.get(this.criptografarUrl(url), {headers:header})
         .catch(this.handleError)
         .publishReplay()
         .refCount();                 
     } 
 
-    post(url:string,body:string, @Optional() header:string=''):Observable<any>{
-        return this.http.post(this.criptografarUrl(url),body,header)
+    post(url:string,body:string, @Optional() header:Headers = new Headers()):Observable<any>{
+        return this.http.post(this.criptografarUrl(url),body,{headers:header})
         .catch(this.handleError)
         .publishReplay()
         .refCount();  
     }
 
-    put(url:string,body:string, @Optional() header:string=''):Observable<any>{
-        return this.http.put(this.criptografarUrl(url),body,header)
+    put(url:string,body:string, @Optional() header:Headers = new Headers()):Observable<any>{
+        return this.http.put(this.criptografarUrl(url),body,{headers:header})
         .catch(this.handleError)
         .publishReplay()
         .refCount();  
     }
 
-    delete(url:string, @Optional() header:string=''):Observable<any>{
-        return this.http.delete(this.criptografarUrl(url),header)
+    delete(url:string, @Optional() header:Headers = new Headers()):Observable<any>{
+        return this.http.delete(this.criptografarUrl(url),{headers:header})
         .catch(this.handleError)
         .publishReplay()
         .refCount();  
@@ -49,7 +49,7 @@ export class HttpService extends ServiceUtil implements OnInit {
 
     private criptografarUrl(url:string):string{
         
-        if(AuthenticationService.erlangmsUrlMask){
+        if(!AuthenticationService.erlangmsUrlMask){
             let array = url.split ('/');
             let urlPart = '';
             let dominio = '';
