@@ -44,48 +44,38 @@ import {AuthenticationService} from "../_services/authentication.service";
         background: url(assets/img/logo-unb.gif) 10px center no-repeat transparent;
         height: 62px;
         margin: 0 auto;
-
       }
-
       .active > a,
       .active > a:hover,
       .active > a:focus {
         color: #FFFFFF;
         background: rgba(181, 176, 183, 0.57);
       }
-
       li > a:hover, li > a:focus {
         color: #FFFFFF;
       }
-
       .cor-branca {
         color: #FFFFFF;
       }
-
-
       .fundo{
         background-color: #003366;
       }
-
-
       .sistema {
         text-align: center;
         margin-left: 200px;
       }
-
       .login {
         order: 3;
         flex: 1 ;
         align-self: auto;
         text-align: center;
       }
-
       @media screen and (max-width : 765px) {
-        .sistema {
-            margin-left: 30px;
-        }
+      .sistema {
+          margin-left: 30px;
       }
-    `
+    }
+  `
   ]
 })
 export class NavigationComponent implements OnInit {
@@ -106,7 +96,7 @@ export class NavigationComponent implements OnInit {
   }
 
   verificarUsuarioLogado(){
-    if(AuthenticationService.currentUser.token != ""){
+    if(AuthenticationService.currentUser.token != "" && AuthenticationService.currentUser.token != undefined){
       this.name_user = AuthenticationService.currentUser.resource_owner.name;
       this.email_user = AuthenticationService.currentUser.resource_owner.email;
       this.name_system = this.authenticationService.nomeDoSistema;

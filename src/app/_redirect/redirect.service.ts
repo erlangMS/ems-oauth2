@@ -42,57 +42,48 @@ export class RedirectService implements OnDestroy {
                         if(myVal != null){
                            myVal.innerHTML = `
                                  <h2>Sistema temporariamente indisponível.</h2>
-                                `    
+                                `
+                          
                         }
-                    } 
+                    }
+
             });      
-
-
   }
+
 
     startInitVerifySessionToken() {
         if(AuthenticationService.currentUser.token && AuthenticationService.currentUser.timer){
-          AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken()  localStorage.getItem("token") = '+localStorage.getItem("token")+'\n';
-          AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken()  localStorage.getItem("dataAccessPage") = '+localStorage.getItem("dataAccessPage")+'\n';
-
             let timeAccess = Date.now();
             let total = timeAccess - Number(AuthenticationService.currentUser.timer);
-            AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken()  localStorage.getItem("dateAccessPage") = '+localStorage.getItem("dateAccessPage")+'\n';
-            if(total > AuthenticationService.currentUser.expires_in * 1000){
-              AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if(total > 360000) \n';
-                this.authenticationService.reset();
-            }
-        }
+           
+            if(AuthenticationService.currentUser.expires_in != ''){
+                if(total > AuthenticationService.currentUser.expires_in * 1000){
+                    this.authenticationService.reset();
+                } else {
+                    let urlName = window.location.href.split('/');
+                    this.authenticationService.periodicIncrement(AuthenticationService.currentUser.expires_in);
+                    this.authenticationService.getClientCode(urlName[3])
+                    .subscribe(res => {
 
-        if (AuthenticationService.currentUser.token) {
-              let urlName = window.location.href.split('/');
-              AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if (localStorage.getItem ("token"))   localStorage.getItem ("token") = '+localStorage.getItem ("token")+'\n';
-              this.authenticationService.periodicIncrement(AuthenticationService.currentUser.expires_in);
-              this.authenticationService.getClientCode(urlName[3])
-              .subscribe(res => {
                     
-              });
-
+                     });
+                }
+             }
         }
 
         if (AuthenticationService.currentUser.token && AuthenticationService.currentUser.token != "") {
-            AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if (localStorage.getItem ("dateAccessPage") && AuthenticationService.currentUser.token != "")  \n';
             this.verifyTimeTokenExpired ();
         }
 
         var code = window.location.href.split ('code=')[1];
-        AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() code = '+code+'\n';
         if (code == undefined) {
-            AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if (code == undefined) \n';
             if (AuthenticationService.currentUser.token == '') {
-                AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside if (AuthenticationService.currentUser.token == "") \n';
                 this.initVerificationRedirect ();
             } else {
                 this.authenticationService.periodicIncrement (AuthenticationService.currentUser.expires_in);
             }
         } else if (AuthenticationService.currentUser.token == '' && code != undefined) {
-            AuthenticationService.contentLogger += 'oauth2-client RedirectService startInitVerifySessionToken() inside else if (AuthenticationService.currentUser.token == "" && code != undefined)  \n';
-            this.redirectWithCodeUrl (code);
+             this.redirectWithCodeUrl (code);
         }
 
     }
@@ -105,7 +96,6 @@ export class RedirectService implements OnDestroy {
     private verifyTimeTokenExpired() {
         let dateSecoundAccess = Date.now();
         this.localDateTime = Number(AuthenticationService.currentUser.timer);
-        AuthenticationService.contentLogger += 'oauth2-client RedirectService verifyTimeTokenExpired()  localStorage.getItem("dataAccessPage") = '+localStorage.getItem("dataAccessPage")+'\n';
         let value = dateSecoundAccess - this.localDateTime;
         if (value >= (AuthenticationService.currentUser.expires_in * 1000)) {
             this.authenticationService.logout();
@@ -131,46 +121,24 @@ export class RedirectService implements OnDestroy {
           let array = url_client.split ('/');
           let nomeSistema = array[3].split('#');
           let base_auth = this.auth_url.split('?');
-          AuthenticationService.contentLogger += 'oauth2-client RedirectService redirectWithCodeUrl(code:string)  url_client = '+url_client+'\n';
-          AuthenticationService.contentLogger += 'oauth2-client RedirectService redirectWithCodeUrl(code:string)  array = '+array+'\n';
-          AuthenticationService.contentLogger += 'oauth2-client RedirectService redirectWithCodeUrl(code:string)  nomeSistema = '+nomeSistema+'\n';
-          AuthenticationService.contentLogger += 'oauth2-client RedirectService redirectWithCodeUrl(code:string)  base_auth = '+base_auth+'\n';
+
           this.authenticationService.redirectUserTokenAccess(base_auth[0], AuthenticationService.currentUser.client_id,'CPD',code,
               'authorization_code','/'+nomeSistema[0]+'/index.html/' )
             .subscribe(resultado => {
-            },
-            error => {
-              AuthenticationService.contentLogger += 'oauth2_client RedirectService startRedirectFromBarramento()  '+error+'\n';
-              this.loggerService.getTokenLogger()
-              .subscribe(result =>{
-                this.loggerService.sendLogger('error',  AuthenticationService.contentLogger)
-                .subscribe(resultado =>{
-                });
-              });
-        });
+                     
+            });
     }
 
     private authenticateClient(){
         if(!AuthenticationService.currentUser.token) {
             this.authenticationService.reset();
               let urlName = window.location.href.split('/');
-              AuthenticationService.contentLogger += 'oauth2-client RedirectService authenticateClient() urlName = '+urlName+'\n';
               this.authenticationService.getClientCode(urlName[3])
                   .subscribe(res => {
                        let parts =this.auth_url.split('client_id=');
                        let number = parts[1].split('&');
-                       AuthenticationService.contentLogger += 'oauth2-client RedirectService authenticateClient() url for redirect = '+parts[0]+'client_id='+res.code+'&'+number[1]+'&'+number[2]+'\n';
-                       window.location.href = parts[0]+'client_id='+res.code+'&'+number[1]+'&'+number[2];
-                  },
-                  error => {
-                    AuthenticationService.contentLogger += 'oauth2_client RedirectService startRedirectFromBarramento()  '+error+'\n';
-                    this.loggerService.getTokenLogger()
-                    .subscribe(result =>{
-                      this.loggerService.sendLogger('error',  AuthenticationService.contentLogger)
-                      .subscribe(resultado =>{
-                      });
+                        window.location.href = parts[0]+'client_id='+res.code+'&'+number[1]+'&'+number[2];
                     });
-                });
         }
     }
 

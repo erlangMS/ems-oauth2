@@ -1,24 +1,36 @@
 import {Injectable, OnInit} from '@angular/core';
-import {Http} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/publishReplay';
-import 'rxjs/add/operator/catch';
 import {DefaultHeaders} from "../_headers/default.headers";
 import { CookieService } from '../_cookie/cookie.service';
+import { HttpService } from '../_http/http.service';
+import { Http } from '@angular/http';
 
 
 @Injectable ()
 export class AuthenticationService implements OnInit {
     public time:number = 0;
-    intervalId:any = null;
     static client_secret:string = "";
-    public static contentLogger:string = "";
     public static port_server:string = '';
     public static base_url:string = '';
     public static activatedSystem = true;
+    public static erlangmsUrlMask:any = false;
+
 
     private textDate = '';
+    private intervalId:any = null;
+    private urlSistema:any = '';
+    private partesUrlSistema:any = '';
+    private protocoloSistema:any = '';
+    private dominioSistema:any = '';
+
+    //constantes
+    private _transformaMilissegundos = 1000;
+    private _tempoParaRefresh = 500000;
+    private _grant_type = 'refresh_token';
+    private _errorNotANumber = 'NaN:NaN:NaN';
+    private _nomeArquivoBarramento = 'barramento';
+
 
     public static currentUser:any = {
         token: '',
@@ -31,14 +43,13 @@ export class AuthenticationService implements OnInit {
         client_secret: '',
         default_host: '',
         expires_in: 3600
+
     }
 
     public nomeDoSistema:any = "";
 
-    constructor (private http:Http, private cookieService:CookieService) {
-        let url = window.location.href;
-        let array = url.split ('/');
-        this.nomeDoSistema = array[3].split('#');
+    constructor (private http:HttpService, private cookieService:CookieService, private httpAngular: Http) {
+        this.dadosDaUrl();
         if(localStorage.getItem(this.nomeDoSistema)){ 
             var stringObjeto:any = localStorage.getItem(this.nomeDoSistema);
             var variaveisSistema:any = JSON.parse(stringObjeto); 
@@ -54,37 +65,35 @@ export class AuthenticationService implements OnInit {
         }
     }
 
+    private dadosDaUrl(){
+        this.urlSistema = window.location.href;
+        this.partesUrlSistema = this.urlSistema.split ('/');
+        this.nomeDoSistema = this.partesUrlSistema[3].split('#');
+        this.protocoloSistema = this.partesUrlSistema[0];
+        this.dominioSistema = this.partesUrlSistema[2];
+
+    }
+
     ngOnInit(){
-      this.findUser()
+      /* this.findUser()
         .subscribe(result =>{
 
         },
       error=> {
         this.logout();
-      })
+      }) */
     }
 
     getUrl ():Observable<any> {
-        let url = window.location.href;
-        AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() url = '+url+'\n';
-        let array = url.split ('/');
-        let nomeSistema = array[3].split('#');
-        AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() nomeSistema = '+nomeSistema+'\n';
-        return this.http.get (array[0] + '//' + array[2] + '/'+nomeSistema[0]+'/barramento')
+        return this.httpAngular.get (this.protocoloSistema + '//' + this.dominioSistema + '/'+this.nomeDoSistema+'/'+this._nomeArquivoBarramento)
             .map ((res) => {
                 let json = res.json ();
                 AuthenticationService.base_url = json.base_url;
+                AuthenticationService.erlangmsUrlMask = json.url_mask;
                 DefaultHeaders.host = json.base_url;
-                let url =  json.auth_url + '?response_type=code&client_id=' + AuthenticationService.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+nomeSistema[0]+"/index.html/";
-                AuthenticationService.contentLogger += 'oauth2-client AuthenticationService getUrl() url = '+url+'\n';
+                let url =  json.auth_url + '?response_type=code&client_id=' + AuthenticationService.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
                 return {url: url};
-            }).catch((e:any) => {
-                return Observable.throw(
-                  new Error(`${ e.status } ${ e.statusText }`)
-                );
-            })
-            .publishReplay(1)
-            .refCount();
+            });
     }
 
     getClientCode (client:string):Observable<any> {
@@ -100,16 +109,11 @@ export class AuthenticationService implements OnInit {
             .map ((resposta) => {
                 this.nomeDoSistema = client;
                 let json = resposta.json ();
-                AuthenticationService.currentUser.client_id = json[0].id;
+                let idClient = json[0].id;
+                AuthenticationService.currentUser.client_id = idClient;
                 AuthenticationService.activatedSystem = json[0].active;
-                return {code: json[0].id}
-            }).catch((e:any) => {
-                return Observable.throw(
-                  new Error(`${ e.status } ${ e.statusText }`)
-                );
-            })
-            .publishReplay(1)
-            .refCount();
+                return {code: idClient}
+            });
 
     }
 
@@ -126,43 +130,30 @@ export class AuthenticationService implements OnInit {
         }
         DefaultHeaders.headers.delete ('content-type');
         DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
-        AuthenticationService.contentLogger += 'oauth2-client AuthenticationService redirectUserTokenAccess() before return http.post \n';
-        return this.http.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
+          return this.http.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
             .map ((resposta) => {
                 var resp = resposta.json ();
-                let url = window.location.href;
-                let array = url.split ('/');
-                let dominio = array[2].split(':');
-                AuthenticationService.currentUser.token = resp.access_token;
-                AuthenticationService.contentLogger += 'oauth2-client AuthenticationService redirectUserTokenAccess() resp.access_token'+resp.access_token+'\n';
-                this.cookieService.setCookie("token",AuthenticationService.currentUser.token,AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
-                this.periodicIncrement (AuthenticationService.currentUser.expires_in);
-                let localDateTime = Date.now ();
-                AuthenticationService.currentUser.timer = localDateTime.toString();
                 this.addValueUser(resp);
-                this.cookieService.setCookie("dateAccessPage",localDateTime.toString(),AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
+                this.cookieService.setCookie("token",AuthenticationService.currentUser.token,AuthenticationService.currentUser.expires_in,'/',this.dominioSistema,false);
+                this.periodicIncrement (AuthenticationService.currentUser.expires_in);             
+                this.cookieService.setCookie("dateAccessPage",AuthenticationService.currentUser.timer,AuthenticationService.currentUser.expires_in,'/',this.dominioSistema,false);
                 DefaultHeaders.headers.delete ('content-type');
                 DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
 
                 return true;
-            }).catch((e:any) => {
-                return Observable.throw(
-                  new Error(`${ e.status } ${ e.statusText }`)
-                );
-            })
-            .publishReplay(1)
-            .refCount();
+            });
     }
 
     private addValueUser(resp:any){
+        let localDateTime = Date.now ();
+        AuthenticationService.currentUser.timer = localDateTime.toString();
         let login = resp.resource_owner.login;
-        AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() login = '+login+'\n';
         let idPessoa = resp.resource_owner.id;
-        AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() idPessoa = '+idPessoa+'\n';
         AuthenticationService.currentUser.codigo = idPessoa;
         AuthenticationService.currentUser.user = login;
         AuthenticationService.currentUser.resource_owner = resp.resource_owner;
         AuthenticationService.currentUser.refresh_token = resp.refresh_token;
+        AuthenticationService.currentUser.token = resp.access_token;
         AuthenticationService.currentUser.expires_in = resp.expires_in;
         this.periodicIncrement(AuthenticationService.currentUser.expires_in);
         localStorage.setItem(this.nomeDoSistema,JSON.stringify(AuthenticationService.currentUser));
@@ -174,25 +165,25 @@ export class AuthenticationService implements OnInit {
         this.cancelPeriodicIncrement ();
         if (AuthenticationService.currentUser.timer) {
             let timeAccess = Date.now ();
-            sessionTime = AuthenticationService.currentUser.expires_in * 1000 - (timeAccess - Number (AuthenticationService.currentUser.timer));
-            sessionTime = sessionTime / 1000;
+            sessionTime = AuthenticationService.currentUser.expires_in * this._transformaMilissegundos - (timeAccess - Number (AuthenticationService.currentUser.timer));
+            sessionTime = sessionTime / this._transformaMilissegundos;
         }
-        this.time = sessionTime * 1000;
+
+        this.time = sessionTime * this._transformaMilissegundos;
         let dateFormat = sessionTime
 
         this.intervalId = setInterval (() => {
             this.textDate = this.formatDate(dateFormat);
-            if(this.textDate == 'NaN:NaN:NaN'){
+            if(this.textDate == this._errorNotANumber){
                this.textDate = this.formatDate(dateFormat); 
             }
             dateFormat = dateFormat - 1;
-            if (this.time < 500000) {
+            if (this.time < this._tempoParaRefresh) {
                 if(AuthenticationService.currentUser.refresh_token){
                     AuthenticationService.currentUser.token = '';
                     clearInterval(this.intervalId);
-                    this.refreshSessionTime('refresh_token')
+                    this.refreshSessionTime(this._grant_type)
                     .subscribe((validado)=>{
-                        console.log("validado",validado);
                     })
                 }else{
                     this.logout ();
@@ -201,10 +192,10 @@ export class AuthenticationService implements OnInit {
             } else if(!AuthenticationService.currentUser.token){
                 this.logout ();
             }else {
-                this.time = this.time - 1000;
+                this.time = this.time - this._transformaMilissegundos;
                 return this.time;
             }
-        }, 1000);
+        }, this._transformaMilissegundos);
 
     };
 
@@ -225,24 +216,18 @@ export class AuthenticationService implements OnInit {
         DefaultHeaders.headers.delete ("content-type");
 -       DefaultHeaders.headers.append ("Authorization", "Basic " + btoa (AuthenticationService.currentUser.client_id + ":CPD"));
         DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
+
         return this.http.post(AuthenticationService.base_url+'/authorize','grant_type=' + grant_type + '&refresh_token='+AuthenticationService.currentUser.refresh_token)
         .map((resposta: any)=>{
             let token = resposta.json();
-            AuthenticationService.currentUser.timer = null;
-            let localDateTime = Date.now ();
-            AuthenticationService.currentUser.timer = localDateTime.toString();
-            AuthenticationService.currentUser.token = token.access_token;
-            localStorage.setItem(this.nomeDoSistema,JSON.stringify(AuthenticationService.currentUser));
+            this.addValueUser(token);
+            localStorage.removeItem(this.nomeDoSistema);
             DefaultHeaders.headers.delete ("Authorization");
             DefaultHeaders.headers.delete ('content-type');
             DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
             this.periodicIncrement(AuthenticationService.currentUser.expires_in);
-        }).catch((e:any) => {
-            return Observable.throw(
-              new Error(`${ e.status } ${ e.statusText }`)
-            );
-        }).publishReplay(1)
-        .refCount();
+        });
+
     }
 
     cancelPeriodicIncrement ():void {
@@ -266,12 +251,7 @@ export class AuthenticationService implements OnInit {
                     localStorage.removeItem (this.nomeDoSistema);
                     this.cookieService.setCookie("token",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
                     this.cookieService.setCookie("dateAccessPage",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
-                    AuthenticationService.currentUser = {
-                        token: '',
-                        user: '',
-                        client_id: AuthenticationService.currentUser.client_id,
-                        codigo: ''
-                    }
+                    AuthenticationService.currentUser = {};
                     window.location.href = resultado.url;
                 });
         });
@@ -286,34 +266,20 @@ export class AuthenticationService implements OnInit {
         localStorage.removeItem (this.nomeDoSistema);
         this.cookieService.setCookie("token",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
         this.cookieService.setCookie("dateAccessPage",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
-        AuthenticationService.currentUser = {
-            token: '',
-            user: '',
-            client_id: AuthenticationService.currentUser.client_id,
-            codigo: ''
-        }
+        AuthenticationService.currentUser = {};
     }
 
     findUser ():Observable<any> {
-      AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() before return http.post \n';
         return this.http.post ('/resource', '')
             .map ((response) => {
                 let resp = response.json ();
                 let login = resp.resource_owner.login;
-                AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() login = '+login+'\n';
                 let idPessoa = resp.resource_owner.id;
-                AuthenticationService.contentLogger += 'oauth2-client AuthenticationService findUser() idPessoa = '+idPessoa+'\n';
                 AuthenticationService.currentUser.resource_owner = resp.resource_owner;
                 AuthenticationService.currentUser.user = login;
                 AuthenticationService.currentUser.codigo = idPessoa;
-               }).catch((e:any) => {
-                return Observable.throw(
-                  new Error(`${ e.status } ${ e.statusText }`)
-                );
-            }).publishReplay(1)
-               .refCount();
+            });
     }
-
 
 
 }
