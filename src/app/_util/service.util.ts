@@ -23,17 +23,17 @@ export class ServiceUtil {
     }
 
     if(errMsg == "{\"isTrusted\":true}"){
-      errMsg= "ERRO: Servidor de Dados Indisponível Temporariamente.";
+      errMsg= "Servidor de Dados Indisponível Temporariamente.";
     }else if(errMsg == "{\"error\":\"eunavailable_service\"}"){
-      errMsg= "ERRO: Servidor de Dados Indisponível Temporariamente.";
+      errMsg= "Servidor de Dados Indisponível Temporariamente.";
     } else if( errMsg == "{\"error\": \"enoent_service_contract\"}"){
       return new Observable();
     }else if(errMsg == "{\"error\": \"einvalid_request\"}"){
-      errMsg = "ERRO: Requisição inválida."; 
+      errMsg = "Requisição inválida."; 
     } else if(errMsg == "{\"error\": \"etimeout_service\"}"){
-      errMsg = "ERRO: Servidor de Dados Indisponível Temporariamente."
+      errMsg = "Servidor de Dados Indisponível Temporariamente."
     }else if(errMsg == "{\"error\": \"access_denied\"}"){
-      errMsg = "ERRO: Acesso Negado.";
+      return new Observable();
     }
     return Observable.throw(errMsg);
   }
