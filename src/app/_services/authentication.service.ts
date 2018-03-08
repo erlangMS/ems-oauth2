@@ -14,7 +14,7 @@ export class AuthenticationService implements OnInit {
     public static port_server:string = '';
     public static base_url:string = '';
     public static activatedSystem = true;
-    public static erlangmsUrlMask:any = false;
+    public static erlangmsUrlMask:any = "false";
 
 
     private textDate = '';

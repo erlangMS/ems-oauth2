@@ -49,7 +49,7 @@ export class HttpService extends ServiceUtil implements OnInit {
 
     private criptografarUrl(url:string):string{
         
-        if(AuthenticationService.erlangmsUrlMask){
+        if(AuthenticationService.erlangmsUrlMask == "true"){
             let array = url.split ('/');
             let urlPart = '';
             let dominio = '';
