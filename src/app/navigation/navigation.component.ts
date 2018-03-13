@@ -16,7 +16,7 @@ import {AuthenticationService} from "../_services/authentication.service";
           </div>
           <div class="content">
               <div class="text">TEMPO DE SESSÃO</div>
-              <div class="align-center number count-to" data-from="0" data-to="125" data-speed="1000" data-fresh-interval="20">{{this.authenticationService.time | date:"mm:ss"}}</div>
+              <div class="align-center number count-to" data-from="0" data-to="125" data-speed="1000" data-fresh-interval="20">{{this.authenticationService.textDate}}</div>
           </div>
       </div>
 			<div class="info-container">
@@ -25,8 +25,6 @@ import {AuthenticationService} from "../_services/authentication.service";
         <div class="btn-group user-helper-dropdown">
             <i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
             <ul class="dropdown-menu pull-right">
-                <li><a href="javascript:void(0);"><i class="material-icons">person</i>Perfil</a></li>
-                <li role="seperator" class="divider"></li>
                 <li><a href="javascript:void(0);" (click)="logout()"><i class="material-icons">input</i>Sair</a></li>
             </ul>
         </div>
