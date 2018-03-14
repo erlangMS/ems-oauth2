@@ -12,6 +12,9 @@ export class RedirectService implements OnDestroy {
     private auth_url:string = '';
     private result:any = '';
 
+    private _aplicacaoInativa = 'inativatedApplication';
+    private _rotaAtual = 'erlangms_actualRoute_';
+
     constructor(private authenticationService: AuthenticationService, private loggerService: LoggerService,
                 private cookieService: CookieService){
                     
@@ -37,8 +40,8 @@ export class RedirectService implements OnDestroy {
                         this.startInitVerifySessionToken(); 
                     } else {
                         localStorage.removeItem(urlName[3]);
-                        localStorage.removeItem('erlangms_actualRoute_'+urlName[3]);
-                        var myVal = document.getElementById("inativatedApplication");
+                        localStorage.removeItem(this._rotaAtual+''+urlName[3]);
+                        var myVal = document.getElementById(this._aplicacaoInativa);
                         if(myVal != null){
                            myVal.innerHTML = `
                                  <h2>Sistema temporariamente indisponível.</h2>
@@ -122,7 +125,7 @@ export class RedirectService implements OnDestroy {
           let nomeSistema = array[3].split('#');
           let base_auth = this.auth_url.split('?');
 
-          this.authenticationService.redirectUserTokenAccess(base_auth[0], AuthenticationService.currentUser.client_id,'CPD',code,
+          this.authenticationService.redirectUserTokenAccess(base_auth[0], AuthenticationService.currentUser.client_id,this.authenticationService.clientSecret,code,
               'authorization_code','/'+nomeSistema[0]+'/index.html/' )
             .subscribe(resultado => {
                      

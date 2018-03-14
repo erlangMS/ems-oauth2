@@ -15,6 +15,7 @@ export class AuthenticationService implements OnInit {
     public static base_url:string = '';
     public static activatedSystem = true;
     public static erlangmsUrlMask:any = "false";
+    public clientSecret:string = 'CPD';
 
 
     private textDate = '';
@@ -91,6 +92,9 @@ export class AuthenticationService implements OnInit {
                 AuthenticationService.base_url = json.base_url;
                 AuthenticationService.erlangmsUrlMask = json.url_mask;
                 DefaultHeaders.host = json.base_url;
+                if(json.client_secret){
+                    this.clientSecret = json.client_secret;
+                }
                 let url =  json.auth_url + '?response_type=code&client_id=' + AuthenticationService.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
                 return {url: url};
             });
@@ -184,6 +188,8 @@ export class AuthenticationService implements OnInit {
                     clearInterval(this.intervalId);
                     this.refreshSessionTime(this._grant_type)
                     .subscribe((validado)=>{
+                    },error => {
+                       clearInterval(this.intervalId);
                     })
                 }else{
                     this.logout ();
@@ -214,7 +220,7 @@ export class AuthenticationService implements OnInit {
     refreshSessionTime(grant_type:string):Observable<any>{
         DefaultHeaders.headers.delete ("Authorization");
         DefaultHeaders.headers.delete ("content-type");
--       DefaultHeaders.headers.append ("Authorization", "Basic " + btoa (AuthenticationService.currentUser.client_id + ":CPD"));
+-       DefaultHeaders.headers.append ("Authorization", "Basic " + btoa (AuthenticationService.currentUser.client_id + ":"+this.clientSecret));
         DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
 
         return this.http.post(AuthenticationService.base_url+'/authorize','grant_type=' + grant_type + '&refresh_token='+AuthenticationService.currentUser.refresh_token)
