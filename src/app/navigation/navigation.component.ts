@@ -94,9 +94,9 @@ export class NavigationComponent implements OnInit {
   }
 
   verificarUsuarioLogado(){
-    if(AuthenticationService.currentUser.token != "" && AuthenticationService.currentUser.token != undefined){
-      this.name_user = AuthenticationService.currentUser.resource_owner.name;
-      this.email_user = AuthenticationService.currentUser.resource_owner.email;
+    if(this.authenticationService.currentUser.token != "" && this.authenticationService.currentUser.token != undefined){
+      this.name_user = this.authenticationService.currentUser.resource_owner.name;
+      this.email_user = this.authenticationService.currentUser.resource_owner.email;
       this.name_system = this.authenticationService.nomeDoSistema;
       return true;
     }else {

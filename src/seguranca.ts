@@ -9,3 +9,4 @@ export { NavigationComponent } from './app/navigation/navigation.component';
 export { LoggerService } from './app/_logger/logger.service';
 export { CookieService } from './app/_cookie/cookie.service';
 export { HttpService } from './app/_http/http.service';
+export { EventEmitterService } from './app/_register/event-emitter.service';

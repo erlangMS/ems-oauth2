@@ -4,91 +4,138 @@ import {AuthenticationService} from "../_services/authentication.service";
 import {Observable} from 'rxjs/Observable';
 import { LoggerService } from '../_logger/logger.service';
 import { CookieService } from '../_cookie/cookie.service';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { EventEmitterService } from '../_register/event-emitter.service';
 
 @Injectable()
 export class RedirectService implements OnDestroy {
-
     public localDateTime: number;
+
+    private isLoading: BehaviorSubject<boolean> = new BehaviorSubject(false);
     private auth_url:string = '';
     private result:any = '';
+
+    private static instanceAuthenticationService: AuthenticationService;
 
     private _aplicacaoInativa = 'inativatedApplication';
     private _rotaAtual = 'erlangms_actualRoute_';
 
-    constructor(private authenticationService: AuthenticationService, private loggerService: LoggerService,
-                private cookieService: CookieService){
-                    
+    constructor(private authenticationService: AuthenticationService, private cookieService: CookieService){
+        RedirectService.instanceAuthenticationService = this.authenticationService;
+                this.isLoading.next(true);   
                  this.authenticationService.getUrl()
                     .subscribe(result =>{
                         this.result = result;
-                    });
+                    },
+                    () => this.isLoading.next(false),
+                );
+
     }
 
-    startRedirectFromBarramento(){
-     /*   if(!AuthenticationService.currentUser.token){
-            if(this.cookieService.getCookie('token') != ''){
-                localStorage.setItem('erlangms_'+this.authenticationService.nomeDoSistema,this.cookieService.getCookie('token'));
-                localStorage.setItem ("dateAccessPage", this.cookieService.getCookie('dateAccessPage'));
-            }
-        } */
+    public static getInstance(): AuthenticationService {
+       return RedirectService.instanceAuthenticationService;
+    }
+
+    startRedirectFromBarramento():Observable<any>{
         let urlName = window.location.href.split('/');
-
-            this.authenticationService.getClientCode(urlName[3])
-                .subscribe(res => {
-                    this.auth_url= this.result.url;
-                    if(AuthenticationService.activatedSystem){
-                        this.startInitVerifySessionToken(); 
-                    } else {
-                        localStorage.removeItem(urlName[3]);
-                        localStorage.removeItem(this._rotaAtual+''+urlName[3]);
-                        var myVal = document.getElementById(this._aplicacaoInativa);
-                        if(myVal != null){
-                           myVal.innerHTML = `
-                                 <h2>Sistema temporariamente indisponível.</h2>
-                                `
-                          
+  
+        return Observable.create(observer =>{
+            this.authenticationService.getUrl()
+            .subscribe(result =>{
+                this.result = result;
+                    this.authenticationService.getClientCode(urlName[3])
+                    .subscribe(res => {
+                        this.auth_url= this.result.url;
+                        if(this.authenticationService.activatedSystem){
+                            this.startInitVerifySessionToken()
+                            .subscribe(resp => {
+                                return observer;
+                            })
+                        } else {
+                            localStorage.removeItem(urlName[3]);
+                            localStorage.removeItem(this._rotaAtual+''+urlName[3]);
+                            var myVal = document.getElementById(this._aplicacaoInativa);
+                            if(myVal != null){
+                            myVal.innerHTML = `
+                                    <h2>Sistema temporariamente indisponível.</h2>
+                                    `
+                            
+                            }
                         }
-                    }
+        
+                     });   
 
-            });      
+            });
+        });
+
+           
   }
 
 
-    startInitVerifySessionToken() {
-        if(AuthenticationService.currentUser.token && AuthenticationService.currentUser.timer){
+    startInitVerifySessionToken(): Observable<any> {
+        if(this.authenticationService.currentUser.token && this.authenticationService.currentUser.timer){
             let timeAccess = Date.now();
-            let total = timeAccess - Number(AuthenticationService.currentUser.timer);
-           
-            if(AuthenticationService.currentUser.expires_in != ''){
-                if(total > AuthenticationService.currentUser.expires_in * 1000){
+            let total = timeAccess - Number(this.authenticationService.currentUser.timer);
+            if(this.authenticationService.currentUser.expires_in != ''){
+                if(total > this.authenticationService.currentUser.expires_in * 1000){
                     this.authenticationService.reset();
+                    return Observable.create(observer =>{
+                        return observer;
+                    })
                 } else {
                     let urlName = window.location.href.split('/');
-                    this.authenticationService.periodicIncrement(AuthenticationService.currentUser.expires_in);
-                    this.authenticationService.getClientCode(urlName[3])
-                    .subscribe(res => {
-
+                    this.authenticationService.periodicIncrement(this.authenticationService.currentUser.expires_in);
+                   return Observable.create(observer =>{
+                        this.authenticationService.getClientCode(urlName[3])
+                        .subscribe(res => {
+                            return observer;
+                        });
+                    })
                     
-                     });
                 }
              }
         }
 
-        if (AuthenticationService.currentUser.token && AuthenticationService.currentUser.token != "") {
-            this.verifyTimeTokenExpired ();
+        if (this.authenticationService.currentUser.token && this.authenticationService.currentUser.token != "") {
+            return Observable.create(observer =>{
+                this.verifyTimeTokenExpired ()
+                .subscribe(resposta => {
+                    return observer;
+                });
+            })
         }
 
         var code = window.location.href.split ('code=')[1];
         if (code == undefined) {
-            if (AuthenticationService.currentUser.token == '') {
-                this.initVerificationRedirect ();
+            if (this.authenticationService.currentUser.token == '') {
+                return Observable.create(observer =>{
+                    this.initVerificationRedirect ()
+                    .subscribe(resp=> {
+                        return observer;
+                    })
+                })
             } else {
-                this.authenticationService.periodicIncrement (AuthenticationService.currentUser.expires_in);
+                return Observable.create(observer => {
+                    this.authenticationService.periodicIncrement (this.authenticationService.currentUser.expires_in)
+                    .subscribe(resp => {
+                        return observer;
+                    })
+                })
+                
             }
-        } else if (AuthenticationService.currentUser.token == '' && code != undefined) {
-             this.redirectWithCodeUrl (code);
+        } else if (this.authenticationService.currentUser.token == '' && code != undefined) {
+           return Observable.create(observer => {
+                this.redirectWithCodeUrl (code)
+                .subscribe(resp =>{
+                    return observer;
+                })
+            }) 
+           
         }
 
+        return Observable.create(observer =>{
+            return observer;
+        });
     }
 
 
@@ -96,53 +143,85 @@ export class RedirectService implements OnDestroy {
 
     }
 
-    private verifyTimeTokenExpired() {
+    private verifyTimeTokenExpired(): Observable<any> {
         let dateSecoundAccess = Date.now();
-        this.localDateTime = Number(AuthenticationService.currentUser.timer);
+        this.localDateTime = Number(this.authenticationService.currentUser.timer);
         let value = dateSecoundAccess - this.localDateTime;
-        if (value >= (AuthenticationService.currentUser.expires_in * 1000)) {
+        if (value >= (this.authenticationService.currentUser.expires_in * 1000)) {
             this.authenticationService.logout();
         }
+
+        return Observable.create(observer =>{
+            return observer;
+        })
     }
 
-    private initVerificationRedirect() {
-        if(AuthenticationService.currentUser.timer && AuthenticationService.currentUser.token != ""){
-            this.verifyTimeTokenExpired();
+    private initVerificationRedirect(): Observable<any> {
+        if(this.authenticationService.currentUser.timer && this.authenticationService.currentUser.token != ""){
+            return Observable.create(observer =>{
+                this.verifyTimeTokenExpired()
+                .subscribe(resp => {
+                   return observer;
+                })
+            })
+           
         }else{
-            if(AuthenticationService.currentUser.token != '') {
-                this.authenticationService.periodicIncrement(AuthenticationService.currentUser.expires_in);
+            if(this.authenticationService.currentUser.token != '') {
+                return Observable.create(observer =>{
+                    this.authenticationService.periodicIncrement(this.authenticationService.currentUser.expires_in)
+                    .subscribe(resp => {
+                       return observer;
+                    })
+                })
+               
             } else {
-                this.authenticateClient();
+                return Observable.create(observer =>{
+                    this.authenticateClient()
+                    .subscribe(resp => {
+                        return observer;
+                    })
+                })
+               
             }
 
         }
 
     }
 
-    private redirectWithCodeUrl(code:string) {
+    private redirectWithCodeUrl(code:string): Observable<any> {
           let url_client = window.location.href;
           let array = url_client.split ('/');
           let nomeSistema = array[3].split('#');
           let base_auth = this.auth_url.split('?');
+          return Observable.create(observer => {
+            this.authenticationService.redirectUserTokenAccess(base_auth[0], this.authenticationService.currentUser.client_id,this.authenticationService.clientSecret,code,
+                'authorization_code','/'+nomeSistema[0]+'/index.html/' )
+                .subscribe(resposta => {
+                    return observer;
+                })
 
-          this.authenticationService.redirectUserTokenAccess(base_auth[0], AuthenticationService.currentUser.client_id,this.authenticationService.clientSecret,code,
-              'authorization_code','/'+nomeSistema[0]+'/index.html/' )
-            .subscribe(resultado => {
-                     
-            });
+          })
+                  
     }
 
-    private authenticateClient(){
-        if(!AuthenticationService.currentUser.token) {
+    private authenticateClient():Observable<any>{
+        if(!this.authenticationService.currentUser.token) {
             this.authenticationService.reset();
               let urlName = window.location.href.split('/');
-              this.authenticationService.getClientCode(urlName[3])
-                  .subscribe(res => {
-                       let parts =this.auth_url.split('client_id=');
-                       let number = parts[1].split('&');
-                        window.location.href = parts[0]+'client_id='+res.code+'&'+number[1]+'&'+number[2];
-                    });
+              return Observable.create(observer =>{
+                this.authenticationService.getClientCode(urlName[3])
+                .subscribe(res => {
+                     let parts =this.auth_url.split('client_id=');
+                     let number = parts[1].split('&');
+                      window.location.href = parts[0]+'client_id='+res.code+'&'+number[1]+'&'+number[2];
+                      return observer;
+                  });
+              });             
         }
+
+        return Observable.create(observer => {
+            return observer;
+        })
     }
 
 

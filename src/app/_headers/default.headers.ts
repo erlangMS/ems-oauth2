@@ -1,18 +1,19 @@
 import { Injectable, OnInit } from '@angular/core';
 import { Headers, RequestOptions, RequestOptionsArgs  } from '@angular/http';
-import {AuthenticationService} from "../_services/authentication.service";
+import { RedirectService } from '../_redirect/redirect.service';
 
 @Injectable()
 export class DefaultHeaders extends RequestOptions implements OnInit {
 
     static headers: Headers  = new Headers({ 'content-type': 'application/json; charset=utf-8'});
-    public static port: string = '';
-    public static host: string = '';
+    public port: string = '';
+
 
     constructor() {
       super();
-
+       
     }
+
 
     ngOnInit() {
       
@@ -35,32 +36,53 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
             localStorage.setItem("erlangms_actualRoute_"+nomeSistema,dominio[0]);
        } 
 
-       
-
       if(options != undefined){
     		options.headers = DefaultHeaders.headers;
       }
 
-      if(AuthenticationService.currentUser.token != '') {
+      if(RedirectService.getInstance().currentUser.token != '') {
           DefaultHeaders.headers.delete('Authorization');
-          DefaultHeaders.headers.append('Authorization', 'Bearer '+AuthenticationService.currentUser.token);
+          DefaultHeaders.headers.append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
           if(options != undefined) {
               if(options.url != undefined) {
                   protocol = options.url.split (':');
               }
           }
-          if(protocol != undefined) {
+          if(protocol != undefined && protocol[0] != '') {
               if (protocol[0] == 'http' || protocol[0] == 'https') {
-
-              } else if (options != undefined && AuthenticationService.base_url == '') {
-                  options.url = DefaultHeaders.host + '' +  options.url;
+                  
               } else if (options != undefined) {
-                  options.url = AuthenticationService.base_url + '' + options.url;
+                  options.url = RedirectService.getInstance().base_url + '' + options.url;
               }
           }
-      }
+      } else if(RedirectService.getInstance().base_url) {
+            if(options != undefined) {
+                if(options.url != undefined) {
+                    protocol = options.url.split (':');
+                }
+            }
 
-      var result = super.merge(options);
+            if(protocol[0] == 'http' || protocol[0] == 'https') {
+
+            } else if(options != undefined){
+                options.url = RedirectService.getInstance().base_url + '' + options.url;
+            }
+      } else {
+
+            if(options != undefined) {
+                if(options.url != undefined) {
+                    protocol = options.url.split (':');
+                }
+            }
+
+            if(protocol[0] == 'http' || protocol[0] == 'https') {
+
+            } else if(options != undefined){
+                options.url = RedirectService.getInstance().currentUser.default_url + '' + options.url;
+            }
+    }
+
+        var result = super.merge(options);
         result.merge = this.merge;
         return result;
       }

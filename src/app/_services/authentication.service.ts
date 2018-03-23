@@ -1,20 +1,21 @@
-import {Injectable, OnInit} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import {DefaultHeaders} from "../_headers/default.headers";
 import { CookieService } from '../_cookie/cookie.service';
 import { HttpService } from '../_http/http.service';
 import { Http } from '@angular/http';
+import { EventEmitterService } from '../_register/event-emitter.service';
 
 
 @Injectable ()
-export class AuthenticationService implements OnInit {
+export class AuthenticationService  {
     public time:number = 0;
-    static client_secret:string = "";
-    public static port_server:string = '';
-    public static base_url:string = '';
-    public static activatedSystem = true;
-    public static erlangmsUrlMask:any = "false";
+    public client_secret:string = "";
+    public port_server:string = '';
+    public base_url:string = '';
+    public activatedSystem = true;
+    public erlangmsUrlMask:any = "false";
     public clientSecret:string = 'CPD';
 
 
@@ -33,7 +34,7 @@ export class AuthenticationService implements OnInit {
     private _nomeArquivoBarramento = 'barramento';
 
 
-    public static currentUser:any = {
+    public currentUser:any = {
         token: '',
         user: '',
         client_id: '',
@@ -43,7 +44,8 @@ export class AuthenticationService implements OnInit {
         refresh_token: '',
         client_secret: '',
         default_host: '',
-        expires_in: 3600
+        expires_in: 3600,
+        default_url: ''
 
     }
 
@@ -52,17 +54,18 @@ export class AuthenticationService implements OnInit {
     constructor (private http:HttpService, private cookieService:CookieService, private httpAngular: Http) {
         this.dadosDaUrl();
         if(localStorage.getItem(this.nomeDoSistema)){ 
+            EventEmitterService.get('tokenPreenchido').emit(true);
             var stringObjeto:any = localStorage.getItem(this.nomeDoSistema);
             var variaveisSistema:any = JSON.parse(stringObjeto); 
-            AuthenticationService.currentUser.token = variaveisSistema.token
-            AuthenticationService.currentUser.client_id = variaveisSistema.client_id;
-            AuthenticationService.currentUser.codigo = variaveisSistema.codigo;
-            AuthenticationService.currentUser.user = variaveisSistema.user;
-            AuthenticationService.currentUser.timer = variaveisSistema.timer;
-            AuthenticationService.currentUser.resource_owner = variaveisSistema.resource_owner;
-            AuthenticationService.currentUser.refresh_token = variaveisSistema.resource_owner.refresh_token;
-            AuthenticationService.currentUser.expires_in = variaveisSistema.expires_in;
-        
+            this.currentUser.token = variaveisSistema.token
+            this.currentUser.client_id = variaveisSistema.client_id;
+            this.currentUser.codigo = variaveisSistema.codigo;
+            this.currentUser.user = variaveisSistema.user;
+            this.currentUser.timer = variaveisSistema.timer;
+            this.currentUser.resource_owner = variaveisSistema.resource_owner;
+            this.currentUser.refresh_token = variaveisSistema.resource_owner.refresh_token;
+            this.currentUser.expires_in = variaveisSistema.expires_in;  
+            this.currentUser.default_url = variaveisSistema.default_url;      
         }
     }
 
@@ -75,27 +78,18 @@ export class AuthenticationService implements OnInit {
 
     }
 
-    ngOnInit(){
-      /* this.findUser()
-        .subscribe(result =>{
-
-        },
-      error=> {
-        this.logout();
-      }) */
-    }
 
     getUrl ():Observable<any> {
         return this.httpAngular.get (this.protocoloSistema + '//' + this.dominioSistema + '/'+this.nomeDoSistema+'/'+this._nomeArquivoBarramento)
             .map ((res) => {
                 let json = res.json ();
-                AuthenticationService.base_url = json.base_url;
-                AuthenticationService.erlangmsUrlMask = json.url_mask;
-                DefaultHeaders.host = json.base_url;
+                this.base_url = json.base_url;
+                this.erlangmsUrlMask = json.url_mask;
                 if(json.client_secret){
                     this.clientSecret = json.client_secret;
                 }
-                let url =  json.auth_url + '?response_type=code&client_id=' + AuthenticationService.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
+                this.currentUser.default_url = this.base_url;
+                let url =  json.auth_url + '?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
                 return {url: url};
             });
     }
@@ -105,17 +99,15 @@ export class AuthenticationService implements OnInit {
         if (count.length > 1) {
             client = count[0];
         }
-        if (AuthenticationService.base_url == '') {
-            AuthenticationService.base_url = DefaultHeaders.host;
-        }
+      
         DefaultHeaders.headers.delete ("Authorization");
-        return this.http.get (AuthenticationService.base_url + '/auth/client?filter={"name":"' + client + '"}')
+        return this.http.get (this.base_url + '/auth/client?filter={"name":"' + client + '"}')
             .map ((resposta) => {
                 this.nomeDoSistema = client;
                 let json = resposta.json ();
                 let idClient = json[0].id;
-                AuthenticationService.currentUser.client_id = idClient;
-                AuthenticationService.activatedSystem = json[0].active;
+                this.currentUser.client_id = idClient;
+                this.activatedSystem = json[0].active;
                 return {code: idClient}
             });
 
@@ -137,10 +129,11 @@ export class AuthenticationService implements OnInit {
           return this.http.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
             .map ((resposta) => {
                 var resp = resposta.json ();
-                this.addValueUser(resp);
-                this.cookieService.setCookie("token",AuthenticationService.currentUser.token,AuthenticationService.currentUser.expires_in,'/',this.dominioSistema,false);
-                this.periodicIncrement (AuthenticationService.currentUser.expires_in);             
-                this.cookieService.setCookie("dateAccessPage",AuthenticationService.currentUser.timer,AuthenticationService.currentUser.expires_in,'/',this.dominioSistema,false);
+                this.addValueUser(resp, true);
+                EventEmitterService.get('registroToken').emit(resp.access_token);
+                this.cookieService.setCookie("token",this.currentUser.token,this.currentUser.expires_in,'/',this.dominioSistema,false);
+                this.periodicIncrement (this.currentUser.expires_in);             
+                this.cookieService.setCookie("dateAccessPage",this.currentUser.timer,this.currentUser.expires_in,'/',this.dominioSistema,false);
                 DefaultHeaders.headers.delete ('content-type');
                 DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
 
@@ -148,28 +141,31 @@ export class AuthenticationService implements OnInit {
             });
     }
 
-    private addValueUser(resp:any){
+    private addValueUser(resp:any, emit:boolean){
         let localDateTime = Date.now ();
-        AuthenticationService.currentUser.timer = localDateTime.toString();
+        this.currentUser.timer = localDateTime.toString();
         let login = resp.resource_owner.login;
         let idPessoa = resp.resource_owner.id;
-        AuthenticationService.currentUser.codigo = idPessoa;
-        AuthenticationService.currentUser.user = login;
-        AuthenticationService.currentUser.resource_owner = resp.resource_owner;
-        AuthenticationService.currentUser.refresh_token = resp.refresh_token;
-        AuthenticationService.currentUser.token = resp.access_token;
-        AuthenticationService.currentUser.expires_in = resp.expires_in;
-        this.periodicIncrement(AuthenticationService.currentUser.expires_in);
-        localStorage.setItem(this.nomeDoSistema,JSON.stringify(AuthenticationService.currentUser));
+        this.currentUser.codigo = idPessoa;
+        this.currentUser.user = login; 
+        this.currentUser.resource_owner = resp.resource_owner;
+        this.currentUser.refresh_token = resp.refresh_token;
+        this.currentUser.token = resp.access_token;
+        this.currentUser.expires_in = resp.expires_in;
+        this.periodicIncrement(this.currentUser.expires_in);
+        localStorage.setItem(this.nomeDoSistema,JSON.stringify(this.currentUser));
+        if(emit){
+            EventEmitterService.get('tokenPreenchido').emit(true);
+        }
 
     }
 
 
-    periodicIncrement (sessionTime:number):void {
+    periodicIncrement (sessionTime:number):Observable<any> {
         this.cancelPeriodicIncrement ();
-        if (AuthenticationService.currentUser.timer) {
+        if (this.currentUser.timer) {
             let timeAccess = Date.now ();
-            sessionTime = AuthenticationService.currentUser.expires_in * this._transformaMilissegundos - (timeAccess - Number (AuthenticationService.currentUser.timer));
+            sessionTime = this.currentUser.expires_in * this._transformaMilissegundos - (timeAccess - Number (this.currentUser.timer));
             sessionTime = sessionTime / this._transformaMilissegundos;
         }
 
@@ -183,8 +179,8 @@ export class AuthenticationService implements OnInit {
             }
             dateFormat = dateFormat - 1;
             if (this.time < this._tempoParaRefresh) {
-                if(AuthenticationService.currentUser.refresh_token){
-                    AuthenticationService.currentUser.token = '';
+                if(this.currentUser.refresh_token){
+                    this.currentUser.token = '';
                     clearInterval(this.intervalId);
                     this.refreshSessionTime(this._grant_type)
                     .subscribe((validado)=>{
@@ -195,13 +191,18 @@ export class AuthenticationService implements OnInit {
                     this.logout ();
                 }
                 
-            } else if(!AuthenticationService.currentUser.token){
+            } else if(!this.currentUser.token){
                 this.logout ();
             }else {
                 this.time = this.time - this._transformaMilissegundos;
                 return this.time;
             }
+
         }, this._transformaMilissegundos);
+
+        return Observable.create((observer:any) =>{
+            return observer;
+        });
 
     };
 
@@ -220,28 +221,32 @@ export class AuthenticationService implements OnInit {
     refreshSessionTime(grant_type:string):Observable<any>{
         DefaultHeaders.headers.delete ("Authorization");
         DefaultHeaders.headers.delete ("content-type");
--       DefaultHeaders.headers.append ("Authorization", "Basic " + btoa (AuthenticationService.currentUser.client_id + ":"+this.clientSecret));
+-       DefaultHeaders.headers.append ("Authorization", "Basic " + btoa (this.currentUser.client_id + ":"+this.clientSecret));
         DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
 
-        return this.http.post(AuthenticationService.base_url+'/authorize','grant_type=' + grant_type + '&refresh_token='+AuthenticationService.currentUser.refresh_token)
+        return this.http.post(this.base_url+'/authorize','grant_type=' + grant_type + '&refresh_token='+this.currentUser.refresh_token)
         .map((resposta: any)=>{
             let token = resposta.json();
-            this.addValueUser(token);
             localStorage.removeItem(this.nomeDoSistema);
+            this.addValueUser(token, false);
             DefaultHeaders.headers.delete ("Authorization");
             DefaultHeaders.headers.delete ('content-type');
             DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
-            this.periodicIncrement(AuthenticationService.currentUser.expires_in);
+            this.periodicIncrement(this.currentUser.expires_in);
         });
 
     }
 
-    cancelPeriodicIncrement ():void {
+    cancelPeriodicIncrement ():Observable<any> {
         if (this.intervalId != null) {
-            clearInterval (this.intervalId);
+            clearInterval (this.intervalId);AuthenticationService
             this.intervalId = null;
             this.time = 0;
         }
+
+        return Observable.create((observer:any) =>{
+            return observer;
+        });
     };
 
     logout ():void {
@@ -255,9 +260,9 @@ export class AuthenticationService implements OnInit {
                 .subscribe (resultado => {
                     this.cancelPeriodicIncrement ();
                     localStorage.removeItem (this.nomeDoSistema);
-                    this.cookieService.setCookie("token",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
-                    this.cookieService.setCookie("dateAccessPage",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
-                    AuthenticationService.currentUser = {};
+                    this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
+                    this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
+                    this.currentUser = {};
                     window.location.href = resultado.url;
                 });
         });
@@ -270,9 +275,9 @@ export class AuthenticationService implements OnInit {
 
         this.cancelPeriodicIncrement ();
         localStorage.removeItem (this.nomeDoSistema);
-        this.cookieService.setCookie("token",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
-        this.cookieService.setCookie("dateAccessPage",' ',AuthenticationService.currentUser.expires_in,'/',dominio[0],false);
-        AuthenticationService.currentUser = {};
+        this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
+        this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
+        this.currentUser = {};
     }
 
     findUser ():Observable<any> {
@@ -281,9 +286,9 @@ export class AuthenticationService implements OnInit {
                 let resp = response.json ();
                 let login = resp.resource_owner.login;
                 let idPessoa = resp.resource_owner.id;
-                AuthenticationService.currentUser.resource_owner = resp.resource_owner;
-                AuthenticationService.currentUser.user = login;
-                AuthenticationService.currentUser.codigo = idPessoa;
+                this.currentUser.resource_owner = resp.resource_owner;
+                this.currentUser.user = login;
+                this.currentUser.codigo = idPessoa;
             });
     }
 

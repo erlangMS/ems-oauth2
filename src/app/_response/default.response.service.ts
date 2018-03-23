@@ -1,7 +1,7 @@
 import { Injectable, OnInit } from '@angular/core';
 import { ResponseOptions, ResponseOptionsArgs  } from '@angular/http';
-import {AuthenticationService} from "../_services/authentication.service";
 import { CookieService } from '../_cookie/cookie.service';
+import { RedirectService } from '../../..';
 
 @Injectable()
 export class DefaultResponse extends ResponseOptions  implements OnInit {
@@ -33,7 +33,7 @@ export class DefaultResponse extends ResponseOptions  implements OnInit {
             localStorage.removeItem(nomeSistema);
             this.cookieService.setCookie("token",' ',3600,'/',dominio[0],false);
             this.cookieService.setCookie("dateAccessPage",' ',3600,'/',dominio[0],false);
-            AuthenticationService.currentUser.token = '';
+            RedirectService.getInstance().logout();
         }
 
         var result = super.merge(options);

@@ -34,7 +34,10 @@ export class ServiceUtil {
       errMsg = "Servidor de Dados Indisponível Temporariamente."
     }else if(errMsg == "{\"error\": \"access_denied\"}"){
       return new Observable();
+    }  else {
+      return Observable.throw(error);
     }
+    
     return Observable.throw(errMsg);
   }
 

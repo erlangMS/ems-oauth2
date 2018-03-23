@@ -3,9 +3,10 @@ import {Http, Headers} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/catch';
+import 'rxjs/add/operator/retry';
 import { DefaultHeaders } from '../_headers/default.headers';
-import { AuthenticationService } from '../_services/authentication.service';
 import { ServiceUtil } from '../_util/service.util';
+import { RedirectService } from '../_redirect/redirect.service';
 
 @Injectable ()
 export class HttpService extends ServiceUtil implements OnInit {
@@ -23,14 +24,14 @@ export class HttpService extends ServiceUtil implements OnInit {
         return this.http.get(this.criptografarUrl(url), {headers:header})
         .catch(this.handleError)
         .publishReplay()
-        .refCount();                 
+        .refCount();              
     } 
 
     post(url:string,body:string, @Optional() header:Headers = new Headers()):Observable<any>{
         return this.http.post(this.criptografarUrl(url),body,{headers:header})
         .catch(this.handleError)
         .publishReplay()
-        .refCount();  
+        .refCount(); 
     }
 
     put(url:string,body:string, @Optional() header:Headers = new Headers()):Observable<any>{
@@ -49,7 +50,7 @@ export class HttpService extends ServiceUtil implements OnInit {
 
     private criptografarUrl(url:string):string{
         
-        if(AuthenticationService.erlangmsUrlMask == "true"){
+        if(RedirectService.getInstance().erlangmsUrlMask == "true"){
             let array = url.split ('/');
             let urlPart = '';
             let dominio = '';
