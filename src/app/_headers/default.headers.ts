@@ -25,7 +25,8 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
         let array = url.split ('/');
         let dominio:any;
         let nomeSistema = array[3].split('#');
-        
+
+
         if(array.length == 6){
             dominio = array[5].split('?');
         } else {
@@ -43,12 +44,32 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
         if(RedirectService.getInstance().currentUser.token != '') {
             DefaultHeaders.headers.delete('Authorization');
             DefaultHeaders.headers.append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
-            options.url = this.validateUrl(options,protocol,RedirectService.getInstance().base_url);
+            if(options != undefined) {
+                if(options.url != undefined) {
+                    protocol = options.url.split (':');
+                }
+            }
+    
+            if(protocol[0] == 'http' || protocol[0] == 'https') {         
+    
+            } else if(options != undefined && RedirectService.getInstance().base_url){
+                options.url = RedirectService.getInstance().base_url + '' + options.url;
+            }
         } else if(RedirectService.getInstance().base_url) {
-            options.url = this.validateUrl(options,protocol,RedirectService.getInstance().base_url);
+            if(options != undefined) {
+                if(options.url != undefined) {
+                    protocol = options.url.split (':');
+                }
+            }
+    
+            if(protocol[0] == 'http' || protocol[0] == 'https') {
+    
+            } else if(options != undefined && RedirectService.getInstance().base_url){
+                options.url = RedirectService.getInstance().base_url + '' + options.url;
+            }
+    
         } else {
-            options.url = this.validateUrl(options,protocol,RedirectService.getInstance().currentUser.default_url);
-        
+          
         }
         
         var result = super.merge(options);
@@ -64,7 +85,11 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
         }
 
         if(protocol[0] == 'http' || protocol[0] == 'https') {
-            return options.url;
+            if(options != undefined) {
+                if(options.url != undefined) {
+                    return options.url;
+                }
+            }
 
         } else if(options != undefined){
             return base_url + '' + options.url;

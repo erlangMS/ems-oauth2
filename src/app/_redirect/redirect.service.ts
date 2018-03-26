@@ -22,22 +22,15 @@ export class RedirectService implements OnDestroy {
 
     constructor(private authenticationService: AuthenticationService, private cookieService: CookieService){
         RedirectService.instanceAuthenticationService = this.authenticationService;
-                this.isLoading.next(true);   
-                 this.authenticationService.getUrl()
-                    .subscribe(result =>{
-                        this.result = result;
-                    },
-                    () => this.isLoading.next(false),
-                );
-
     }
 
     public static getInstance(): AuthenticationService {
        return RedirectService.instanceAuthenticationService;
     }
 
-    startRedirectFromBarramento():Observable<any>{
+    startRedirectFromBarramento(baseUrl:string):Observable<any>{
         let urlName = window.location.href.split('/');
+        this.authenticationService.base_url = baseUrl;
   
         return Observable.create(observer =>{
             this.authenticationService.getUrl()
@@ -50,6 +43,9 @@ export class RedirectService implements OnDestroy {
                             this.startInitVerifySessionToken()
                             .subscribe(resp => {
                                 return observer;
+                            },
+                            error => {
+                                console.log(error)
                             })
                         } else {
                             localStorage.removeItem(urlName[3]);
@@ -63,8 +59,14 @@ export class RedirectService implements OnDestroy {
                             }
                         }
         
-                     });   
+                     },
+                     error => {
+                        console.log(error)
+                    });   
 
+            },
+            error => {
+                console.log(error)
             });
         });
 

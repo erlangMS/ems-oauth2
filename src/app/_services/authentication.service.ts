@@ -44,8 +44,7 @@ export class AuthenticationService  {
         refresh_token: '',
         client_secret: '',
         default_host: '',
-        expires_in: 3600,
-        default_url: ''
+        expires_in: 3600
 
     }
 
@@ -64,8 +63,7 @@ export class AuthenticationService  {
             this.currentUser.timer = variaveisSistema.timer;
             this.currentUser.resource_owner = variaveisSistema.resource_owner;
             this.currentUser.refresh_token = variaveisSistema.resource_owner.refresh_token;
-            this.currentUser.expires_in = variaveisSistema.expires_in;  
-            this.currentUser.default_url = variaveisSistema.default_url;      
+            this.currentUser.expires_in = variaveisSistema.expires_in;      
         }
     }
 
@@ -83,12 +81,11 @@ export class AuthenticationService  {
         return this.httpAngular.get (this.protocoloSistema + '//' + this.dominioSistema + '/'+this.nomeDoSistema+'/'+this._nomeArquivoBarramento)
             .map ((res) => {
                 let json = res.json ();
-                this.base_url = json.base_url;
+               
                 this.erlangmsUrlMask = json.url_mask;
                 if(json.client_secret){
                     this.clientSecret = json.client_secret;
                 }
-                this.currentUser.default_url = this.base_url;
                 let url =  json.auth_url + '?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
                 return {url: url};
             });
