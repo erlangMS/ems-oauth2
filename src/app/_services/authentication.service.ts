@@ -25,13 +25,13 @@ export class AuthenticationService  {
     private partesUrlSistema:any = '';
     private protocoloSistema:any = '';
     private dominioSistema:any = '';
-
+    
     //constantes
     private _transformaMilissegundos = 1000;
     private _tempoParaRefresh = 500000;
     private _grant_type = 'refresh_token';
     private _errorNotANumber = 'NaN:NaN:NaN';
-    private _nomeArquivoBarramento = 'barramento';
+    private _nomeArquivoBarramento = 'barramento'; 
 
 
     public currentUser:any = {
@@ -86,7 +86,9 @@ export class AuthenticationService  {
                 if(json.client_secret){
                     this.clientSecret = json.client_secret;
                 }
-                let url =  json.auth_url + '?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
+                let array_auth = json.auth_url.split('/');
+
+                let url =  array_auth[0]+'//'+array_auth[2]+'/dados/'+array_auth[3]+ '?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
                 return {url: url};
             });
     }
@@ -123,7 +125,7 @@ export class AuthenticationService  {
         }
         DefaultHeaders.headers.delete ('content-type');
         DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
-          return this.http.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
+          return this.httpAngular.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
             .map ((resposta) => {
                 var resp = resposta.json ();
                 this.addValueUser(resp, true);
