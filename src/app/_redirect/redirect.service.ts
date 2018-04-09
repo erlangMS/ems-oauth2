@@ -35,10 +35,9 @@ export class RedirectService implements OnDestroy {
         return Observable.create(observer =>{
             this.authenticationService.getUrl()
             .subscribe(result =>{
-                this.result = result;
+                this.auth_url = result.url;
                     this.authenticationService.getClientCode(urlName[3])
                     .subscribe(res => {
-                        this.auth_url= this.result.url;
                         if(this.authenticationService.activatedSystem){
                             this.startInitVerifySessionToken()
                             .subscribe(resp => {

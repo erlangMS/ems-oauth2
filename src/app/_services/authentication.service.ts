@@ -25,6 +25,10 @@ export class AuthenticationService  {
     private partesUrlSistema:any = '';
     private protocoloSistema:any = '';
     private dominioSistema:any = '';
+
+    private protocol:string = '';
+    private dominio:string = '';
+    private urlAuthorize:string = '';
     
     //constantes
     private _transformaMilissegundos = 1000;
@@ -88,12 +92,26 @@ export class AuthenticationService  {
                 }
                 let array_auth = json.auth_url.split('/');
 
-                let url =  array_auth[0]+'//'+array_auth[2]+'/dados/'+array_auth[3]+ '?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
-                return {url: url};
+                this.protocol = array_auth[0];
+                this.dominio = array_auth[2];
+                this.urlAuthorize = array_auth[3];
+                this.currentUser.client_id = json.client_id;
+
+                if(!this.urlAuthorize.startsWith("/dados")){
+                    this.urlAuthorize = "/dados/"+this.urlAuthorize;
+                } else {
+                    let arrayCompose = this.urlAuthorize.split('/');
+                    this.urlAuthorize = '/'+arrayCompose[0]+'/'+arrayCompose[1];
+
+                }
+               
+                let url =  this.protocol+'//'+this.dominio+this.urlAuthorize+ '?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
+
+                return {url:url}
             });
     }
 
-    getClientCode (client:string):Observable<any> {
+    getClientCode(client:string):Observable<any> {
         let count:string[] = client.split ("#");
         if (count.length > 1) {
             client = count[0];
@@ -107,7 +125,9 @@ export class AuthenticationService  {
                 let idClient = json[0].id;
                 this.currentUser.client_id = idClient;
                 this.activatedSystem = json[0].active;
-                return {code: idClient}
+
+                let url =  this.protocol+'//'+this.dominio+this.urlAuthorize+ '?response_type=code&client_id=' + idClient + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
+                return {code: idClient, url:url}
             });
 
     }
@@ -253,9 +273,9 @@ export class AuthenticationService  {
         let array = url.split ('/');
         let dominio = array[2].split(':');
 
-        this.getClientCode(array[3])
+        this.getUrl()
         .subscribe(resp=>{
-            this.getUrl ()
+            this.getClientCode (array[3])
                 .subscribe (resultado => {
                     this.cancelPeriodicIncrement ();
                     localStorage.removeItem (this.nomeDoSistema);
@@ -271,12 +291,18 @@ export class AuthenticationService  {
         let url = window.location.href;
         let array = url.split ('/');
         let dominio = array[2].split(':');
-
-        this.cancelPeriodicIncrement ();
-        localStorage.removeItem (this.nomeDoSistema);
-        this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
-        this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
-        this.currentUser = {};
+        
+        this.getUrl()
+        .subscribe(resp=>{
+            this.getClientCode (array[3])
+                .subscribe (resultado => {
+                    this.cancelPeriodicIncrement ();
+                    localStorage.removeItem (this.nomeDoSistema);
+                    this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
+                    this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
+                    this.currentUser = {};
+                });
+        });
     }
 
     findUser ():Observable<any> {
