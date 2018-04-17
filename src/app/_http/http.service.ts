@@ -75,7 +75,7 @@ export class HttpService extends ServiceUtil implements OnInit {
             }
             urlPart+=array[i];
         
-            return dominio+"/erl.ms/"+btoa(+this.dados+urlPart);   
+            return dominio+"/erl.ms/"+btoa(this.dados+urlPart);   
         } else {
             if(protocol[0] == 'http' || protocol[0] == 'https'){
                 dominio = array[0]+"//"+array[2];
