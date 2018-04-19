@@ -94,17 +94,15 @@ export class AuthenticationService  {
 
                 this.protocol = array_auth[0];
                 this.dominio = array_auth[2];
-                this.urlAuthorize = array_auth[3];
                 this.currentUser.client_id = json.client_id;
-
-                if(!this.urlAuthorize.startsWith("/dados")){
-                    this.urlAuthorize = "/dados/"+this.urlAuthorize;
-                } else {
-                    let arrayCompose = this.urlAuthorize.split('/');
-                    this.urlAuthorize = '/'+arrayCompose[0]+'/'+arrayCompose[1];
-
+                
+                if(this.urlAuthorize == 'dados') {
+                    array_auth.aplice(3,1);
                 }
-               
+
+                this.urlAuthorize = array_auth[3];
+                this.urlAuthorize = "/dados/"+this.urlAuthorize;
+
                 let url =  this.protocol+'//'+this.dominio+this.urlAuthorize+ '?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
 
                 return {url:url}

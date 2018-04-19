@@ -70,11 +70,15 @@ export class HttpService extends ServiceUtil implements OnInit {
                 i = 1;
             }
 
+            if(array[3] == 'dados'){
+                array.splice(3,1);
+            }
+
             for(; i< array.length-1; i++){
                 urlPart+=array[i]+"/";
             }
             urlPart+=array[i];
-        
+
             return dominio+"/erl.ms/"+btoa(this.dados+urlPart);   
         } else {
             if(protocol[0] == 'http' || protocol[0] == 'https'){
@@ -85,6 +89,10 @@ export class HttpService extends ServiceUtil implements OnInit {
                 i = 3;
             }else {
                 i = 1;
+            }
+
+            if(array[3] == 'dados'){
+                array.splice(3,1);
             }
 
             for(; i< array.length-1; i++){
