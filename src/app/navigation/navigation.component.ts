@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, AfterContentInit } from '@angular/core';
 import { AuthenticationService } from "../_services/authentication.service";
 
 @Component({
@@ -42,7 +42,7 @@ import { AuthenticationService } from "../_services/authentication.service";
       `
   ]
 })
-export class NavigationComponent implements OnInit {
+export class NavigationComponent implements AfterContentInit {
 
   private name_user:any = '';
   private email_user:any = '';
@@ -51,9 +51,19 @@ export class NavigationComponent implements OnInit {
   constructor(private authenticationService: AuthenticationService) { }
 
 
-  ngOnInit() {
+  ngAfterContentInit() {
+    let timeAccess = Date.now();
+    let total = timeAccess - Number(this.authenticationService.currentUser.timer);
+      if(this.authenticationService.currentUser.expires_in != undefined && this.authenticationService.currentUser.timer != ""){
+          if(this.authenticationService.currentUser.expires_in != ''){
+              if(total > this.authenticationService.currentUser.expires_in * 1000){
+                this.authenticationService.logout();
+              }
+            }
+      }
+    }
 
-  }
+
 
   logout(){
     this.authenticationService.logout();
