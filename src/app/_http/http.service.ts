@@ -1,5 +1,5 @@
 import {Injectable, OnInit, Optional} from '@angular/core';
-import {Http, Headers} from '@angular/http';
+import {Http, Headers, ResponseContentType} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/catch';
@@ -22,11 +22,18 @@ export class HttpService extends ServiceUtil implements OnInit {
     }
 
 
-    get(url:string,@Optional() header:Headers = new Headers()):Observable<any>{
-        return this.http.get(this.criptografarUrl(url), {headers:header})
-        .catch(this.handleError)
-        .publishReplay()
-        .refCount();              
+    get(url:string,@Optional() header:Headers = new Headers(), @Optional() responseType:ResponseContentType = ResponseContentType.Text):Observable<any>{
+        if(responseType != ResponseContentType.Blob ){
+            return this.http.get(this.criptografarUrl(url),{headers:header})
+            .catch(this.handleError)
+            .publishReplay()
+            .refCount();
+        } else {
+            return this.http.get(this.criptografarUrl(url),{responseType:responseType})
+            .catch(this.handleError)
+            .publishReplay()
+            .refCount();
+        }            
     } 
 
     post(url:string,body:string, @Optional() header:Headers = new Headers()):Observable<any>{
@@ -72,11 +79,12 @@ export class HttpService extends ServiceUtil implements OnInit {
 
             if(array[3] == 'dados'){
                 array.splice(3,1);
-            }
+            } 
 
             for(; i< array.length-1; i++){
                 urlPart+=array[i]+"/";
             }
+
             urlPart+=array[i];
 
             return dominio+"/erl.ms/"+btoa(this.dados+urlPart);   
@@ -98,6 +106,7 @@ export class HttpService extends ServiceUtil implements OnInit {
             for(; i< array.length-1; i++){
                 urlPart+=array[i]+"/";
             }
+
             urlPart+=array[i];
         
             return dominio+this.dados+urlPart

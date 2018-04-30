@@ -84,8 +84,9 @@ export class AuthenticationService  {
     getUrl ():Observable<any> {
         return this.httpAngular.get (this.protocoloSistema + '//' + this.dominioSistema + '/'+this.nomeDoSistema+'/'+this._nomeArquivoBarramento)
             .map ((res) => {
-                let json = res.json ();
-               
+                let json = res.json (); 
+                this.dadosDaUrl();
+        
                 this.erlangmsUrlMask = json.url_mask;
                 if(json.client_secret){
                     this.clientSecret = json.client_secret;
@@ -94,10 +95,10 @@ export class AuthenticationService  {
 
                 this.protocol = array_auth[0];
                 this.dominio = array_auth[2];
-                this.currentUser.client_id = json.client_id;
+                this.currentUser.client_id = json.app_id;
                 
-                if(this.urlAuthorize == 'dados') {
-                    array_auth.aplice(3,1);
+                if(array_auth[3] == 'dados') {
+                    array_auth.splice(3,1);
                 }
 
                 this.urlAuthorize = array_auth[3];
@@ -191,7 +192,7 @@ export class AuthenticationService  {
 
         this.intervalId = setInterval (() => {
             this.textDate = this.formatDate(dateFormat);
-            if(this.textDate == this._errorNotANumber){
+            while(this.textDate == this._errorNotANumber){
                this.textDate = this.formatDate(dateFormat); 
             }
             dateFormat = dateFormat - 1;

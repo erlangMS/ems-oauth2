@@ -36,6 +36,7 @@ export class RedirectService implements OnDestroy {
             this.authenticationService.getUrl()
             .subscribe(result =>{
                 this.auth_url = result.url;
+                if(this.authenticationService.currentUser.client_id <= 0){
                     this.authenticationService.getClientCode(urlName[3])
                     .subscribe(res => {
                         if(this.authenticationService.activatedSystem){
@@ -61,7 +62,16 @@ export class RedirectService implements OnDestroy {
                      },
                      error => {
                         console.log(error)
-                    });   
+                    });
+                } else {
+                    this.startInitVerifySessionToken()
+                        .subscribe(resp => {
+                            return observer;
+                        },
+                        error => {
+                            console.log(error)
+                        })
+                }   
 
             },
             error => {

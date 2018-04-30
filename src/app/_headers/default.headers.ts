@@ -25,6 +25,8 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
         let array = url.split ('/');
         let dominio:any;
         let nomeSistema = array[3].split('#');
+        let arrayUrl:any[] =  RedirectService.getInstance().base_url.split('/');
+        let urlRedirect:string = '';
 
 
         if(array.length == 6){
@@ -41,6 +43,13 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
                 options.headers = DefaultHeaders.headers;
         }
 
+        if(arrayUrl[3] == 'dados'){
+            arrayUrl.splice(3,1);
+            urlRedirect = arrayUrl[0]+"//"+arrayUrl[2];
+        } else {
+            urlRedirect = RedirectService.getInstance().base_url;
+        }
+
         if(RedirectService.getInstance().currentUser.token != '') {
             DefaultHeaders.headers.delete('Authorization');
             DefaultHeaders.headers.append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
@@ -53,7 +62,7 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
             if(protocol[0] == 'http' || protocol[0] == 'https') {         
     
             } else if(options != undefined && RedirectService.getInstance().base_url){
-                options.url = RedirectService.getInstance().base_url + '' + options.url;
+                options.url = urlRedirect + '' + options.url;
             }
         } else if(RedirectService.getInstance().base_url) {
             if(options != undefined) {
@@ -65,7 +74,7 @@ export class DefaultHeaders extends RequestOptions implements OnInit {
             if(protocol[0] == 'http' || protocol[0] == 'https') {
     
             } else if(options != undefined && RedirectService.getInstance().base_url){
-                options.url = RedirectService.getInstance().base_url + '' + options.url;
+                options.url = urlRedirect + '' + options.url;
             }
     
         } else {

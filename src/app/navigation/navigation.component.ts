@@ -8,15 +8,15 @@ import { AuthenticationService } from "../_services/authentication.service";
     <!-- User Info -->
 		<div class="user-info" *ngIf="verificarUsuarioLogado()">
       <div class="image">
-        <img src="assets/images/user.png" width="48" height="48" alt="User" />
+        <img src="assets/images/user.jpeg" width="48" height="48" alt="User" />
       </div>
-      <div class="info-box bg-blue-unb hover-expand-effect">
+      <div class="backgroud-color-box info-box bg-blue-unb hover-expand-effect">
           <div class="icon">
               <i class="material-icons">access_time</i>
           </div>
           <div class="content">
               <div class="col-white text">TEMPO DE SESSÃO</div>
-              <div class="align-center col-white number count-to" data-from="0" data-to="125" data-speed="1000" data-fresh-interval="20">{{this.authenticationService.textDate}}</div>
+              <div class="align-center col-white text count-to" data-from="0" data-to="125" data-speed="1000" data-fresh-interval="20">{{this.authenticationService.textDate}}</div>
           </div>
       </div>
 			<div class="info-container">
@@ -36,7 +36,9 @@ import { AuthenticationService } from "../_services/authentication.service";
     `,
     styles: [
       `
-
+        .backgroud-color-box {
+          background-color: #003664;
+        }
       `
   ]
 })
