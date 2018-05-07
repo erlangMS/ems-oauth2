@@ -1,19 +1,17 @@
 import {Injectable, OnInit, Optional} from '@angular/core';
 import {Http, Headers, ResponseContentType} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
-import 'rxjs/add/operator/publishReplay';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/retry';
-import { DefaultHeaders } from '../_headers/default.headers';
+import 'rxjs/Rx';
 import { ServiceUtil } from '../_util/service.util';
 import { RedirectService } from '../_redirect/redirect.service';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable ()
 export class HttpService extends ServiceUtil implements OnInit {
 
     private dados:string = '/dados/';
 
-    constructor(private http: Http){
+    constructor(private http: HttpClient){
         super();
     }
 
@@ -22,36 +20,55 @@ export class HttpService extends ServiceUtil implements OnInit {
     }
 
 
-    get(url:string,@Optional() header:Headers = new Headers(), @Optional() responseType:ResponseContentType = ResponseContentType.Text):Observable<any>{
+    get(url:string,@Optional() header:HttpHeaders = new HttpHeaders(), @Optional() responseType:ResponseContentType = ResponseContentType.Text):Observable<any>{
         if(responseType != ResponseContentType.Blob ){
-            return this.http.get(this.criptografarUrl(url),{headers:header})
+            return this.http.get(this.criptografarUrl(url),{
+                headers:header,
+                observe:'body',
+                responseType: 'json'            
+            })
             .catch(this.handleError)
             .publishReplay()
             .refCount();
         } else {
-            return this.http.get(this.criptografarUrl(url),{responseType:responseType})
+            return this.http.get(this.criptografarUrl(url),{
+                responseType:'blob',
+                observe:'response'        
+            })
             .catch(this.handleError)
             .publishReplay()
             .refCount();
         }            
     } 
 
-    post(url:string,body:string, @Optional() header:Headers = new Headers()):Observable<any>{
-        return this.http.post(this.criptografarUrl(url),body,{headers:header})
+    post(url:string,body:string, @Optional() header:HttpHeaders = new HttpHeaders()):Observable<any>{
+        return this.http.post(this.criptografarUrl(url),body,{
+            headers:header,
+            observe:'body',
+            responseType: 'json'
+        })
         .catch(this.handleError)
         .publishReplay()
         .refCount(); 
     }
 
-    put(url:string,body:string, @Optional() header:Headers = new Headers()):Observable<any>{
-        return this.http.put(this.criptografarUrl(url),body,{headers:header})
+    put(url:string,body:string, @Optional() header:HttpHeaders = new HttpHeaders()):Observable<any>{
+        return this.http.put(this.criptografarUrl(url),body,{
+            headers:header,
+            observe:'body',
+            responseType:'json'
+        })
         .catch(this.handleError)
         .publishReplay()
         .refCount();  
     }
 
-    delete(url:string, @Optional() header:Headers = new Headers()):Observable<any>{
-        return this.http.delete(this.criptografarUrl(url),{headers:header})
+    delete(url:string, @Optional() header:HttpHeaders = new HttpHeaders()):Observable<any>{
+        return this.http.delete(this.criptografarUrl(url),{
+            headers:header,
+            observe:'body',
+            responseType:'json'
+        })
         .catch(this.handleError)
         .publishReplay()
         .refCount();  

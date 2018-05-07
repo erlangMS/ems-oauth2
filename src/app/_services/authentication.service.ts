@@ -1,11 +1,11 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
-import {DefaultHeaders} from "../_headers/default.headers";
 import { CookieService } from '../_cookie/cookie.service';
 import { HttpService } from '../_http/http.service';
-import { Http } from '@angular/http';
 import { EventEmitterService } from '../_register/event-emitter.service';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { AuthInterceptor } from '../_headers/auth.interceptor';
 
 
 @Injectable ()
@@ -54,7 +54,7 @@ export class AuthenticationService  {
 
     public nomeDoSistema:any = "";
 
-    constructor (private http:HttpService, private cookieService:CookieService, private httpAngular: Http) {
+    constructor (private http:HttpService, private cookieService:CookieService, private httpAngular: HttpClient) {
         this.dadosDaUrl();
         if(localStorage.getItem(this.nomeDoSistema)){ 
             EventEmitterService.get('tokenPreenchido').emit(true);
@@ -82,20 +82,21 @@ export class AuthenticationService  {
 
 
     getUrl ():Observable<any> {
-        return this.httpAngular.get (this.protocoloSistema + '//' + this.dominioSistema + '/'+this.nomeDoSistema+'/'+this._nomeArquivoBarramento)
-            .map ((res) => {
-                let json = res.json (); 
+        return this.httpAngular.get (this.protocoloSistema + '//' + this.dominioSistema + '/'+this.nomeDoSistema+'/'+this._nomeArquivoBarramento,{
+            observe:'body',
+            responseType:'json'
+        })
+            .map ((res:any) => { 
                 this.dadosDaUrl();
-        
-                this.erlangmsUrlMask = json.url_mask;
-                if(json.client_secret){
-                    this.clientSecret = json.client_secret;
+                this.erlangmsUrlMask = res.url_mask;
+                if(res.client_secret){
+                    this.clientSecret = res.client_secret;
                 }
-                let array_auth = json.auth_url.split('/');
+                let array_auth = res.auth_url.split('/');
 
                 this.protocol = array_auth[0];
                 this.dominio = array_auth[2];
-                this.currentUser.client_id = json.app_id;
+                this.currentUser.client_id = res.app_id;
                 
                 if(array_auth[3] == 'dados') {
                     array_auth.splice(3,1);
@@ -116,14 +117,12 @@ export class AuthenticationService  {
             client = count[0];
         }
       
-        DefaultHeaders.headers.delete ("Authorization");
         return this.http.get (this.base_url + '/auth/client?filter={"name":"' + client + '"}')
-            .map ((resposta) => {
+            .map ((resposta:any) => {
                 this.nomeDoSistema = client;
-                let json = resposta.json ();
-                let idClient = json[0].id;
+                let idClient = resposta[0].id;
                 this.currentUser.client_id = idClient;
-                this.activatedSystem = json[0].active;
+                this.activatedSystem = resposta[0].active;
 
                 let url =  this.protocol+'//'+this.dominio+this.urlAuthorize+ '?response_type=code&client_id=' + idClient + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
                 return {code: idClient, url:url}
@@ -142,18 +141,15 @@ export class AuthenticationService  {
             redirect_uri: redirect_uri,
             grant_type: grant_type
         }
-        DefaultHeaders.headers.delete ('content-type');
-        DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
+        AuthInterceptor.headers = new HttpHeaders().set('content-type','application/x-www-form-urlencoded');
           return this.httpAngular.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
-            .map ((resposta) => {
-                var resp = resposta.json ();
-                this.addValueUser(resp, true);
-                EventEmitterService.get('registroToken').emit(resp.access_token);
+            .map ((resposta:any) => {
+                this.addValueUser(resposta, true);
+                EventEmitterService.get('registroToken').emit(resposta.access_token);
                 this.cookieService.setCookie("token",this.currentUser.token,this.currentUser.expires_in,'/',this.dominioSistema,false);
                 this.periodicIncrement (this.currentUser.expires_in);             
                 this.cookieService.setCookie("dateAccessPage",this.currentUser.timer,this.currentUser.expires_in,'/',this.dominioSistema,false);
-                DefaultHeaders.headers.delete ('content-type');
-                DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
+                AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8');
 
                 return true;
             });
@@ -201,8 +197,8 @@ export class AuthenticationService  {
                     this.currentUser.token = '';
                     clearInterval(this.intervalId);
                     this.refreshSessionTime(this._grant_type)
-                    .subscribe((validado)=>{
-                    },error => {
+                    .subscribe((validado:any)=>{
+                    },(error:any) => {
                        clearInterval(this.intervalId);
                     })
                 }else{
@@ -237,19 +233,14 @@ export class AuthenticationService  {
     }
 
     refreshSessionTime(grant_type:string):Observable<any>{
-        DefaultHeaders.headers.delete ("Authorization");
-        DefaultHeaders.headers.delete ("content-type");
--       DefaultHeaders.headers.append ("Authorization", "Basic " + btoa (this.currentUser.client_id + ":"+this.clientSecret));
-        DefaultHeaders.headers.append ('content-type','application/x-www-form-urlencoded');
+        AuthInterceptor.headers = new HttpHeaders().set('content-type','application/x-www-form-urlencoded')
+        .append ("Authorization", "Basic " + btoa (this.currentUser.client_id + ":"+this.clientSecret));
 
         return this.http.post(this.base_url+'/authorize','grant_type=' + grant_type + '&refresh_token='+this.currentUser.refresh_token)
         .map((resposta: any)=>{
-            let token = resposta.json();
             localStorage.removeItem(this.nomeDoSistema);
-            this.addValueUser(token, false);
-            DefaultHeaders.headers.delete ("Authorization");
-            DefaultHeaders.headers.delete ('content-type');
-            DefaultHeaders.headers.append ('content-type','application/json; charset=utf-8');
+            this.addValueUser(resposta, false);
+            AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8');
             this.periodicIncrement(this.currentUser.expires_in);
         });
 
@@ -273,16 +264,15 @@ export class AuthenticationService  {
         let dominio = array[2].split(':');
 
         this.getUrl()
-        .subscribe(resp=>{
-            this.getClientCode (array[3])
-                .subscribe (resultado => {
-                    this.cancelPeriodicIncrement ();
-                    localStorage.removeItem (this.nomeDoSistema);
-                    this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
-                    this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
-                    this.currentUser = {};
-                    window.location.href = resultado.url;
-                });
+
+        .subscribe((resp:any)=>{
+            this.cancelPeriodicIncrement ();
+            localStorage.removeItem (this.nomeDoSistema);
+            this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
+            this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
+            this.currentUser = {};
+            window.location.href = resp.url;       
+
         });
     }
 
@@ -292,25 +282,21 @@ export class AuthenticationService  {
         let dominio = array[2].split(':');
         
         this.getUrl()
-        .subscribe(resp=>{
-            this.getClientCode (array[3])
-                .subscribe (resultado => {
-                    this.cancelPeriodicIncrement ();
-                    localStorage.removeItem (this.nomeDoSistema);
-                    this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
-                    this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
-                    this.currentUser = {};
-                });
+        .subscribe((resp:any)=>{   
+            this.cancelPeriodicIncrement ();
+            localStorage.removeItem (this.nomeDoSistema);
+            this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
+            this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
+            this.currentUser = {};
         });
     }
 
     findUser ():Observable<any> {
         return this.http.post ('/resource', '')
-            .map ((response) => {
-                let resp = response.json ();
-                let login = resp.resource_owner.login;
-                let idPessoa = resp.resource_owner.id;
-                this.currentUser.resource_owner = resp.resource_owner;
+            .map ((response:any) => {
+                let login = response.resource_owner.login;
+                let idPessoa = response.resource_owner.id;
+                this.currentUser.resource_owner = response.resource_owner;
                 this.currentUser.user = login;
                 this.currentUser.codigo = idPessoa;
             });

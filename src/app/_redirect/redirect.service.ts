@@ -4,18 +4,16 @@ import {AuthenticationService} from "../_services/authentication.service";
 import {Observable} from 'rxjs/Observable';
 import { LoggerService } from '../_logger/logger.service';
 import { CookieService } from '../_cookie/cookie.service';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { EventEmitterService } from '../_register/event-emitter.service';
+
 
 @Injectable()
 export class RedirectService implements OnDestroy {
-    public localDateTime: number;
-
-    private isLoading: BehaviorSubject<boolean> = new BehaviorSubject(false);
+    public localDateTime: number = 0;
     private auth_url:string = '';
     private result:any = '';
 
-    private static instanceAuthenticationService: AuthenticationService;
+    private static instanceAuthenticationService: any = '';
 
     private _aplicacaoInativa = 'inativatedApplication';
     private _rotaAtual = 'erlangms_actualRoute_';
@@ -32,19 +30,19 @@ export class RedirectService implements OnDestroy {
         let urlName = window.location.href.split('/');
         this.authenticationService.base_url = baseUrl;
   
-        return Observable.create(observer =>{
+        return Observable.create((observer:any) =>{
             this.authenticationService.getUrl()
-            .subscribe(result =>{
+            .subscribe((result:any) =>{
                 this.auth_url = result.url;
                 if(this.authenticationService.currentUser.client_id <= 0){
                     this.authenticationService.getClientCode(urlName[3])
-                    .subscribe(res => {
+                    .subscribe((res:any) => {
                         if(this.authenticationService.activatedSystem){
                             this.startInitVerifySessionToken()
-                            .subscribe(resp => {
+                            .subscribe((resp:any) => {
                                 return observer;
                             },
-                            error => {
+                            (error:any) => {
                                 console.log(error)
                             })
                         } else {
@@ -60,21 +58,21 @@ export class RedirectService implements OnDestroy {
                         }
         
                      },
-                     error => {
+                     (error:any) => {
                         console.log(error)
                     });
                 } else {
                     this.startInitVerifySessionToken()
-                        .subscribe(resp => {
+                        .subscribe((resp:any) => {
                             return observer;
                         },
-                        error => {
+                        (error:any) => {
                             console.log(error)
                         })
                 }   
 
             },
-            error => {
+            (error:any) => {
                 console.log(error)
             });
         });
@@ -90,27 +88,23 @@ export class RedirectService implements OnDestroy {
             if(this.authenticationService.currentUser.expires_in != ''){
                 if(total > this.authenticationService.currentUser.expires_in * 1000){
                     this.authenticationService.reset();
-                    return Observable.create(observer =>{
+                    return Observable.create((observer:any) =>{
                         return observer;
                     })
                 } else {
                     let urlName = window.location.href.split('/');
                     this.authenticationService.periodicIncrement(this.authenticationService.currentUser.expires_in);
-                   return Observable.create(observer =>{
-                        this.authenticationService.getClientCode(urlName[3])
-                        .subscribe(res => {
-                            return observer;
-                        });
+                   return Observable.create((observer:any) =>{
+                       return observer;
                     })
-                    
                 }
              }
         }
 
         if (this.authenticationService.currentUser.token && this.authenticationService.currentUser.token != "") {
-            return Observable.create(observer =>{
+            return Observable.create((observer:any) =>{
                 this.verifyTimeTokenExpired ()
-                .subscribe(resposta => {
+                .subscribe((resposta:any) => {
                     return observer;
                 });
             })
@@ -119,32 +113,32 @@ export class RedirectService implements OnDestroy {
         var code = window.location.href.split ('code=')[1];
         if (code == undefined) {
             if (this.authenticationService.currentUser.token == '') {
-                return Observable.create(observer =>{
+                return Observable.create((observer:any) =>{
                     this.initVerificationRedirect ()
-                    .subscribe(resp=> {
+                    .subscribe((resp:any)=> {
                         return observer;
                     })
                 })
             } else {
-                return Observable.create(observer => {
+                return Observable.create((observer:any) => {
                     this.authenticationService.periodicIncrement (this.authenticationService.currentUser.expires_in)
-                    .subscribe(resp => {
+                    .subscribe((resp:any) => {
                         return observer;
                     })
                 })
                 
             }
         } else if (this.authenticationService.currentUser.token == '' && code != undefined) {
-           return Observable.create(observer => {
+           return Observable.create((observer:any) => {
                 this.redirectWithCodeUrl (code)
-                .subscribe(resp =>{
+                .subscribe((resp:any) =>{
                     return observer;
                 })
             }) 
            
         }
 
-        return Observable.create(observer =>{
+        return Observable.create((observer:any) =>{
             return observer;
         });
     }
@@ -162,33 +156,33 @@ export class RedirectService implements OnDestroy {
             this.authenticationService.logout();
         }
 
-        return Observable.create(observer =>{
+        return Observable.create((observer:any) =>{
             return observer;
         })
     }
 
     private initVerificationRedirect(): Observable<any> {
         if(this.authenticationService.currentUser.timer && this.authenticationService.currentUser.token != ""){
-            return Observable.create(observer =>{
+            return Observable.create((observer:any) =>{
                 this.verifyTimeTokenExpired()
-                .subscribe(resp => {
+                .subscribe((resp:any) => {
                    return observer;
                 })
             })
            
         }else{
             if(this.authenticationService.currentUser.token != '') {
-                return Observable.create(observer =>{
+                return Observable.create((observer:any) =>{
                     this.authenticationService.periodicIncrement(this.authenticationService.currentUser.expires_in)
-                    .subscribe(resp => {
+                    .subscribe((resp:any) => {
                        return observer;
                     })
                 })
                
             } else {
-                return Observable.create(observer =>{
+                return Observable.create((observer:any) =>{
                     this.authenticateClient()
-                    .subscribe(resp => {
+                    .subscribe((resp:any) => {
                         return observer;
                     })
                 })
@@ -204,10 +198,10 @@ export class RedirectService implements OnDestroy {
           let array = url_client.split ('/');
           let nomeSistema = array[3].split('#');
           let base_auth = this.auth_url.split('?');
-          return Observable.create(observer => {
+          return Observable.create((observer:any) => {
             this.authenticationService.redirectUserTokenAccess(base_auth[0], this.authenticationService.currentUser.client_id,this.authenticationService.clientSecret,code,
                 'authorization_code','/'+nomeSistema[0]+'/index.html/' )
-                .subscribe(resposta => {
+                .subscribe((resposta:any) => {
                     return observer;
                 })
 
@@ -219,18 +213,16 @@ export class RedirectService implements OnDestroy {
         if(!this.authenticationService.currentUser.token) {
             this.authenticationService.reset();
               let urlName = window.location.href.split('/');
-              return Observable.create(observer =>{
-                this.authenticationService.getClientCode(urlName[3])
-                .subscribe(res => {
-                     let parts =this.auth_url.split('client_id=');
-                     let number = parts[1].split('&');
-                      window.location.href = parts[0]+'client_id='+res.code+'&'+number[1]+'&'+number[2];
-                      return observer;
-                  });
+              return Observable.create((observer:any) =>{
+                let parts =this.auth_url.split('client_id=');
+                let number = parts[1].split('&');
+                window.location.href = parts[0]+'client_id='+this.authenticationService.currentUser.client_id+'&'+number[1]+'&'+number[2];
+                return observer;
               });             
+
         }
 
-        return Observable.create(observer => {
+        return Observable.create((observer:any) => {
             return observer;
         })
     }
