@@ -22,6 +22,7 @@ export class AuthInterceptor implements HttpInterceptor {
         let nomeSistema = array[3].split('#');
         let arrayUrl:any[] =  RedirectService.getInstance().base_url.split('/');
         let urlRedirect:string = '';
+        let arrayTemporario:any[] = [];
 
 
         if(array.length == 6){
@@ -40,6 +41,14 @@ export class AuthInterceptor implements HttpInterceptor {
             urlRedirect = arrayUrl[0]+"//"+arrayUrl[2];
         } else {
             urlRedirect = RedirectService.getInstance().base_url;
+        }
+
+        if(arrayUrl.length == 1){
+            arrayTemporario = url.split('/');
+            let host = arrayTemporario[2];
+            let hostSemPorta = host.split(':');
+
+            urlRedirect = arrayTemporario[0]+'//'+hostSemPorta[0];
         }
 
         if(RedirectService.getInstance().currentUser.token != '') {
@@ -72,9 +81,11 @@ export class AuthInterceptor implements HttpInterceptor {
                 copieReq.url = urlRedirect + '' + copieReq.url;
             }
     
-        } else {
-          
-        }
+        } 
+        
+        if(arrayTemporario.length > 1){
+                copieReq.url = urlRedirect + '' + copieReq.url;
+        } 
 
         if(copieReq != undefined){
             copieReq.headers = AuthInterceptor.headers;

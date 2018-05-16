@@ -1,7 +1,7 @@
 {
     "name": "seguranca",
     "private": true,
-    "version": "7.0.0",
+    "version": "7.0.4",
     "description": "Project security for oauth2 client with angular 5",
     "main": "./bundles/seguranca.umd.js",
     "module": "./esm5/seguranca.js",
@@ -81,5 +81,4 @@
         "webpack": "3.8.1",
         "zone.js": "0.8.18"
     }
-
 }
