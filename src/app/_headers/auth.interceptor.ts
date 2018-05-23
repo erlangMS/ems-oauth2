@@ -91,7 +91,7 @@ export class AuthInterceptor implements HttpInterceptor {
             copieReq.headers = AuthInterceptor.headers;
         }
 
-        return next.handle(copieReq);
+        return next.handle(copieReq.clone({url:copieReq.url}));
     }
 
 } 

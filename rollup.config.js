@@ -58,10 +58,10 @@ export default {
     onwarn: () => { return },
     output: {
         format: 'umd',
-        name: 'ng.seguranca',
+        name: 'ng.ems-oauth2-client',
         globals: globals,
         sourcemap: true,
         exports: 'named',
-        amd: { id: 'seguranca' }
+        amd: { id: 'ems-oauth2-client' }
     }
 }

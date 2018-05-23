@@ -6,6 +6,7 @@ import { HttpService } from '../_http/http.service';
 import { EventEmitterService } from '../_register/event-emitter.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthInterceptor } from '../_headers/auth.interceptor';
+import { ResourceOwner } from '../_local/resource_owner';
 
 
 @Injectable ()
@@ -23,8 +24,8 @@ export class AuthenticationService  {
     private intervalId:any = null;
     private urlSistema:any = '';
     private partesUrlSistema:any = '';
-    private protocoloSistema:any = '';
-    private dominioSistema:any = '';
+    public protocoloSistema:any = '';
+    public dominioSistema:any = '';
 
     private protocol:string = '';
     private dominio:string = '';
@@ -35,7 +36,7 @@ export class AuthenticationService  {
     private _tempoParaRefresh = 500000;
     private _grant_type = 'refresh_token';
     private _errorNotANumber = 'NaN:NaN:NaN';
-    private _nomeArquivoBarramento = 'barramento'; 
+    public _nomeArquivoBarramento = 'barramento'; 
 
 
     public currentUser:any = {
@@ -67,7 +68,9 @@ export class AuthenticationService  {
             this.currentUser.timer = variaveisSistema.timer;
             this.currentUser.resource_owner = variaveisSistema.resource_owner;
             this.currentUser.refresh_token = variaveisSistema.resource_owner.refresh_token;
-            this.currentUser.expires_in = variaveisSistema.expires_in;      
+            this.currentUser.expires_in = variaveisSistema.expires_in;   
+            ResourceOwner.localStorage = variaveisSistema;
+            ResourceOwner.client_id = variaveisSistema.client_id;   
         }
     }
 
@@ -97,6 +100,8 @@ export class AuthenticationService  {
                 this.protocol = array_auth[0];
                 this.dominio = array_auth[2];
                 this.currentUser.client_id = res.app_id;
+
+                ResourceOwner.client_id = res.app_id;
                 
                 if(array_auth[3] == 'dados') {
                     array_auth.splice(3,1);
@@ -145,6 +150,7 @@ export class AuthenticationService  {
           return this.httpAngular.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
             .map ((resposta:any) => {
                 this.addValueUser(resposta, true);
+                ResourceOwner.localStorage = resposta;
                 EventEmitterService.get('registroToken').emit(resposta.access_token);
                 this.cookieService.setCookie("token",this.currentUser.token,this.currentUser.expires_in,'/',this.dominioSistema,false);
                 this.periodicIncrement (this.currentUser.expires_in);             

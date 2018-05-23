@@ -11,3 +11,4 @@ export { EventEmitterService } from './app/_register/event-emitter.service';
 export { OauthModule } from './app/oauth.module';
 export { AuthInterceptor } from './app/_headers/auth.interceptor';
 export { ReponseInterceptor } from './app/_response/response.interceptor';
+export { ResourceOwner } from './app/_local/resource_owner';

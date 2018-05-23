@@ -1,11 +1,11 @@
 {
-    "name": "seguranca",
+    "name": "ems-oauth2-client",
     "private": true,
-    "version": "7.0.4",
+    "version": "2.1.0",
     "description": "Project security for oauth2 client with angular 5",
-    "main": "./bundles/seguranca.umd.js",
-    "module": "./esm5/seguranca.js",
-    "es2015": "./esm2015/seguranca.js",
+    "main": "./bundles/ems-oauth2-client.umd.js",
+    "module": "./esm5/ems-oauth2-client.js",
+    "es2015": "./esm2015/ems-oauth2-client.js",
     "scripts": {
         "build": "node build.js",
         "test": "karma start",
@@ -16,7 +16,7 @@
         "compodoc": "compodoc -p tsconfig.json",
         "compodoc:serve": "compodoc -s"
     },
-    "typings": "./seguranca.d.ts",
+    "typings": "./ems-oauth2-client.d.ts",
     "author": "",
     "repository": {
         "type": "git",
