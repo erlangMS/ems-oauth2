@@ -8,6 +8,9 @@ export class AuthInterceptor implements HttpInterceptor {
 
     static headers: HttpHeaders  = new HttpHeaders().set('content-type','application/json; charset=utf-8');
 
+    public static keyHeader:string = '';
+    public static valueHeader:string = '';
+
     constructor(){
         
     }
@@ -22,7 +25,6 @@ export class AuthInterceptor implements HttpInterceptor {
         let nomeSistema = array[3].split('#');
         let arrayUrl:any[] =  RedirectService.getInstance().base_url.split('/');
         let urlRedirect:string = '';
-        let arrayTemporario:any[] = [];
 
 
         if(array.length == 6){
@@ -43,19 +45,15 @@ export class AuthInterceptor implements HttpInterceptor {
             urlRedirect = RedirectService.getInstance().base_url;
         }
 
-        if(arrayUrl.length == 1){
-            arrayTemporario = url.split('/');
-            let host = arrayTemporario[2];
-            let hostSemPorta = host.split(':');
-
-            urlRedirect = arrayTemporario[0]+'//'+hostSemPorta[0];
-        }
 
         if(RedirectService.getInstance().currentUser.token != '') {
-            AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8')
-            .append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
-          
-
+            if(AuthInterceptor.keyHeader == ''){
+                AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8')
+                .append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
+            }else{
+                AuthInterceptor.headers = new HttpHeaders().set(AuthInterceptor.keyHeader,AuthInterceptor.valueHeader)
+                .append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
+            }
 
             if(copieReq != undefined) {
                 if(copieReq.url != undefined) {
@@ -76,16 +74,13 @@ export class AuthInterceptor implements HttpInterceptor {
             }
     
             if(protocol[0] == 'http' || protocol[0] == 'https') {
-    
+
             } else if(copieReq != undefined && RedirectService.getInstance().base_url){
                 copieReq.url = urlRedirect + '' + copieReq.url;
             }
     
         } 
         
-        if(arrayTemporario.length > 1){
-                copieReq.url = urlRedirect + '' + copieReq.url;
-        } 
 
         if(copieReq != undefined){
             copieReq.headers = AuthInterceptor.headers;
