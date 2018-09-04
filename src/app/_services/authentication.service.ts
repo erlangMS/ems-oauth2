@@ -308,5 +308,15 @@ export class AuthenticationService  {
             });
     }
 
+    verifyServerStabilish(urlAuthorize:string): Observable<any> {
+        return this.httpAngular.get (urlAuthorize,{
+            observe:'response',
+            responseType:'text'
+        }).map ((res:any) => { 
+                console.log(res);
+              return res;  
+        });
+    }
+
 
 }

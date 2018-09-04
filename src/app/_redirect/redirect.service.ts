@@ -17,6 +17,7 @@ export class RedirectService implements OnDestroy {
 
     private _aplicacaoInativa = 'inativatedApplication';
     private _rotaAtual = 'erlangms_actualRoute_';
+    private myVal = document.getElementById(this._aplicacaoInativa);
 
     constructor(private authenticationService: AuthenticationService, private cookieService: CookieService){
         RedirectService.instanceAuthenticationService = this.authenticationService;
@@ -48,9 +49,9 @@ export class RedirectService implements OnDestroy {
                         } else {
                             localStorage.removeItem(urlName[3]);
                             localStorage.removeItem(this._rotaAtual+''+urlName[3]);
-                            var myVal = document.getElementById(this._aplicacaoInativa);
-                            if(myVal != null){
-                            myVal.innerHTML = `
+                           
+                            if(this.myVal != null){
+                            this.myVal.innerHTML = `
                                     <h2>Sistema temporariamente indisponível.</h2>
                                     `
                             
@@ -216,7 +217,20 @@ export class RedirectService implements OnDestroy {
               return Observable.create((observer:any) =>{
                 let parts =this.auth_url.split('client_id=');
                 let number = parts[1].split('&');
-                window.location.href = parts[0]+'client_id='+this.authenticationService.currentUser.client_id+'&'+number[1]+'&'+number[2];
+                let urlAuthorize = parts[0]+'client_id='+this.authenticationService.currentUser.client_id+'&'+number[1]+'&'+number[2];
+
+                this.authenticationService.verifyServerStabilish(urlAuthorize)
+                .subscribe((resposta:any) => {
+                    window.location.href = urlAuthorize;
+                },
+                error => {
+                    if(this.myVal != null){
+                        this.myVal.innerHTML = `
+                                <h2>Servidor Temporariamente Indisponível.</h2>
+                                ` 
+                        }
+                });
+
                 return observer;
               });             
 
