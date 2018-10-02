@@ -1,6 +1,7 @@
+
+import {throwError as observableThrowError,  Observable } from 'rxjs';
 import {  Response }   from '@angular/http';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/operator/map';
+
 
 export class ServiceUtil {
 
@@ -35,10 +36,10 @@ export class ServiceUtil {
     }else if(errMsg == "{\"error\": \"access_denied\"}"){
       return new Observable();
     }  else {
-      return Observable.throw(error);
+      return observableThrowError(error);
     }
     
-    return Observable.throw(errMsg);
+    return observableThrowError(errMsg);
   }
 
 

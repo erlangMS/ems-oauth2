@@ -1,6 +1,8 @@
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Observable';
-import 'rxjs/add/operator/map';
+import {Observable} from 'rxjs';
+
+import {map, catchError, publishReplay, refCount } from 'rxjs/operators';
+
 import { CookieService } from '../_cookie/cookie.service';
 import { HttpService } from '../_http/http.service';
 import { EventEmitterService } from '../_register/event-emitter.service';
@@ -88,8 +90,8 @@ export class AuthenticationService  {
         return this.httpAngular.get (this.protocoloSistema + '//' + this.dominioSistema + '/'+this.nomeDoSistema+'/'+this._nomeArquivoBarramento,{
             observe:'body',
             responseType:'json'
-        })
-            .map ((res:any) => { 
+        }).pipe(
+            map((res:any) => { 
                 this.dadosDaUrl();
                 this.erlangmsUrlMask = res.url_mask;
                 if(res.client_secret){
@@ -113,7 +115,8 @@ export class AuthenticationService  {
                 let url =  this.protocol+'//'+this.dominio+this.urlAuthorize+ '?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
 
                 return {url:url}
-            });
+            })          
+        );
     }
 
     getClientCode(client:string):Observable<any> {
@@ -123,15 +126,18 @@ export class AuthenticationService  {
         }
       
         return this.http.get (this.base_url + '/auth/client?filter={"name":"' + client + '"}')
-            .map ((resposta:any) => {
-                this.nomeDoSistema = client;
-                let idClient = resposta[0].id;
-                this.currentUser.client_id = idClient;
-                this.activatedSystem = resposta[0].active;
+            .pipe(
+                map ((resposta:any) => {
+                    this.nomeDoSistema = client;
+                    let idClient = resposta[0].id;
+                    this.currentUser.client_id = idClient;
+                    this.activatedSystem = resposta[0].active;
+    
+                    let url =  this.protocol+'//'+this.dominio+this.urlAuthorize+ '?response_type=code&client_id=' + idClient + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
+                    return {code: idClient, url:url}
+                })
 
-                let url =  this.protocol+'//'+this.dominio+this.urlAuthorize+ '?response_type=code&client_id=' + idClient + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
-                return {code: idClient, url:url}
-            });
+            )
 
     }
 
@@ -148,17 +154,20 @@ export class AuthenticationService  {
         }
         AuthInterceptor.headers = new HttpHeaders().set('content-type','application/x-www-form-urlencoded');
           return this.httpAngular.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
-            .map ((resposta:any) => {
-                this.addValueUser(resposta, true);
-                ResourceOwner.localStorage = resposta;
-                EventEmitterService.get('registroToken').emit(resposta.access_token);
-                this.cookieService.setCookie("token",this.currentUser.token,this.currentUser.expires_in,'/',this.dominioSistema,false);
-                this.periodicIncrement (this.currentUser.expires_in);             
-                this.cookieService.setCookie("dateAccessPage",this.currentUser.timer,this.currentUser.expires_in,'/',this.dominioSistema,false);
-                AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8');
+            .pipe(
+                map ((resposta:any) => {
+                    this.addValueUser(resposta, true);
+                    ResourceOwner.localStorage = resposta;
+                    EventEmitterService.get('registroToken').emit(resposta.access_token);
+                    this.cookieService.setCookie("token",this.currentUser.token,this.currentUser.expires_in,'/',this.dominioSistema,false);
+                    this.periodicIncrement (this.currentUser.expires_in);             
+                    this.cookieService.setCookie("dateAccessPage",this.currentUser.timer,this.currentUser.expires_in,'/',this.dominioSistema,false);
+                    AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8');
+    
+                    return true;
+                })
 
-                return true;
-            });
+            )
     }
 
     private addValueUser(resp:any, emit:boolean){
@@ -243,12 +252,15 @@ export class AuthenticationService  {
         .append ("Authorization", "Basic " + btoa (this.currentUser.client_id + ":"+this.clientSecret));
 
         return this.http.post(this.base_url+'/authorize','grant_type=' + grant_type + '&refresh_token='+this.currentUser.refresh_token)
-        .map((resposta: any)=>{
-            localStorage.removeItem(this.nomeDoSistema);
-            this.addValueUser(resposta, false);
-            AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8');
-            this.periodicIncrement(this.currentUser.expires_in);
-        });
+        .pipe(
+            map((resposta: any)=>{
+                localStorage.removeItem(this.nomeDoSistema);
+                this.addValueUser(resposta, false);
+                AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8');
+                this.periodicIncrement(this.currentUser.expires_in);
+            })
+
+        )
 
     }
 
@@ -299,23 +311,15 @@ export class AuthenticationService  {
 
     findUser ():Observable<any> {
         return this.http.post ('/resource', '')
-            .map ((response:any) => {
-                let login = response.resource_owner.login;
-                let idPessoa = response.resource_owner.id;
-                this.currentUser.resource_owner = response.resource_owner;
-                this.currentUser.user = login;
-                this.currentUser.codigo = idPessoa;
-            });
-    }
-
-    verifyServerStabilish(urlAuthorize:string): Observable<any> {
-        return this.httpAngular.get (urlAuthorize,{
-            observe:'response',
-            responseType:'text'
-        }).map ((res:any) => { 
-                console.log(res);
-              return res;  
-        });
+            .pipe(
+                map ((response:any) => {
+                    let login = response.resource_owner.login;
+                    let idPessoa = response.resource_owner.id;
+                    this.currentUser.resource_owner = response.resource_owner;
+                    this.currentUser.user = login;
+                    this.currentUser.codigo = idPessoa;
+                })
+            )
     }
 
 
