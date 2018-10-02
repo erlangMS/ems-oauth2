@@ -26,6 +26,9 @@ export class AuthInterceptor implements HttpInterceptor {
         let arrayUrl:any[] =  RedirectService.getInstance().base_url.split('/');
         let urlRedirect:string = '';
 
+        if(arrayUrl[0] == "") {
+            arrayUrl = localStorage.getItem(nomeSistema+'_url').split('/');
+        }
 
         if(array.length == 6){
             dominio = array[5].split('?');
