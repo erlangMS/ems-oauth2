@@ -21,7 +21,16 @@ export class AuthInterceptor implements HttpInterceptor {
         let dominio:any;
         let nomeSistema = array[3].split('#');
         let arrayUrl:any[] =  RedirectService.getInstance().base_url.split('/');
+        let urlInstance: any = RedirectService.getInstance().base_url;
         let urlRedirect:string = '';
+
+        if(arrayUrl[0] == "") {
+            if(localStorage.getItem(nomeSistema + '_url') != null){
+                var dados:any = localStorage.getItem(nomeSistema + '_url'); 
+                arrayUrl = dados.split('/');
+                urlInstance = dados;
+            }      
+        }
 
 
         if(array.length == 6){
@@ -39,7 +48,7 @@ export class AuthInterceptor implements HttpInterceptor {
             arrayUrl.splice(3,1);
             urlRedirect = arrayUrl[0]+"//"+arrayUrl[2];
         } else {
-            urlRedirect = RedirectService.getInstance().base_url;
+            urlRedirect = urlInstance;
         }
 
 
@@ -57,10 +66,10 @@ export class AuthInterceptor implements HttpInterceptor {
     
             if(protocol[0] == 'http' || protocol[0] == 'https') {         
     
-            } else if(copieReq != undefined && RedirectService.getInstance().base_url){
+            } else if(copieReq != undefined && urlInstance){
                 copieReq.url = urlRedirect + '' + copieReq.url;
             }
-        } else if(RedirectService.getInstance().base_url) {
+        } else if(urlInstance) {
             if(copieReq != undefined) {
                 if(copieReq.url != undefined) {
                     protocol = copieReq.url.split (':');
@@ -69,7 +78,7 @@ export class AuthInterceptor implements HttpInterceptor {
     
             if(protocol[0] == 'http' || protocol[0] == 'https') {
 
-            } else if(copieReq != undefined && RedirectService.getInstance().base_url){
+            } else if(copieReq != undefined && urlInstance){
                 copieReq.url = urlRedirect + '' + copieReq.url;
             }
     

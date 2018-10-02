@@ -1,6 +1,6 @@
 {
   "name": "ems-oauth2-client",
-  "version": "6.1.2",
+  "version": "6.2.0",
   "peerDependencies": {
     "@angular/common": "^6.0.3",
     "@angular/core": "^6.0.3",
