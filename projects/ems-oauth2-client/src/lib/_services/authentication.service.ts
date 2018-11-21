@@ -148,7 +148,8 @@ export class AuthenticationService  {
 
     redirectUserTokenAccess (url:string, client_id:any, client_secret:string, code:string, grant_type:string,
                              redirect_uri:string):Observable<boolean> {
-
+        
+        //TODO: Verify if use this variable
         var obj = {
             client_id: client_id,
             client_secret: client_secret,
@@ -207,6 +208,7 @@ export class AuthenticationService  {
 
         this.intervalId = setInterval (() => {
             this.textDate = this.formatDate(dateFormat);
+            //TODO: verify this while
             while(this.textDate == this._errorNotANumber){
                this.textDate = this.formatDate(dateFormat); 
             }
@@ -266,13 +268,14 @@ export class AuthenticationService  {
 
     cancelPeriodicIncrement () {
         if (this.intervalId != null) {
-            clearInterval (this.intervalId);AuthenticationService
+            clearInterval (this.intervalId);
             this.intervalId = null;
             this.time = 0;
         }
     };
 
     logout ():void {
+        //TODO: Without use this, use unique method for extract url
         let url = window.location.href;
         let array = url.split ('/');
         let dominio = array[2].split(':');

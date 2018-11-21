@@ -15,10 +15,12 @@ export class AuthInterceptor implements HttpInterceptor {
         
     }
 
+    //TODO: divided in many methods
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         let copieReq:any = req.clone();
 
         let protocol:any[] = [''];
+        //TODO: change get url to unique method
         let url = window.location.href;
         let array = url.split ('/');
         let dominio:any;
@@ -27,6 +29,7 @@ export class AuthInterceptor implements HttpInterceptor {
         let urlInstance: any = RedirectService.getInstance().base_url;
         let urlRedirect:string = '';
 
+        //TODO: Separeta in anhoter mehtod
         if(arrayUrl[0] == "") {
             if(localStorage.getItem(nomeSistema + '_url') != null){
                 var dados:any = localStorage.getItem(nomeSistema + '_url'); 
@@ -35,17 +38,19 @@ export class AuthInterceptor implements HttpInterceptor {
             }      
         }
 
+        //TODO: Verify and separete in anhoter method
         if(array.length == 6){
             dominio = array[5].split('?');
         } else {
             dominio = array[4].split('?');
         }
 
+        //TODO: Verify and separete in anhoter method
         if(dominio[0] != "" && dominio[0] != "home" && dominio[0] != "index.html"){ 
                 localStorage.setItem("erlangms_actualRoute_"+nomeSistema,dominio[0]);
         } 
 
-
+        //TODO: Verify and separete in anhoter method
         if(arrayUrl[3] == 'dados'){
             arrayUrl.splice(3,1);
             urlRedirect = arrayUrl[0]+"//"+arrayUrl[2];
@@ -53,7 +58,7 @@ export class AuthInterceptor implements HttpInterceptor {
             urlRedirect = urlInstance;
         }
 
-
+        //TODO: Verify and separete in anhoter method
         if(RedirectService.getInstance().currentUser.token != '') {
             if(AuthInterceptor.keyHeader == ''){
                 AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8')
@@ -65,7 +70,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
           
 
-
+            //TODO: Vefify ifs 
             if(copieReq != undefined) {
                 if(copieReq.url != undefined) {
                     protocol = copieReq.url.split (':');
@@ -93,6 +98,7 @@ export class AuthInterceptor implements HttpInterceptor {
         } 
         
 
+        //TODO: Verify and separete in anhoter method
         if(copieReq != undefined){
             copieReq.headers = AuthInterceptor.headers;
         }

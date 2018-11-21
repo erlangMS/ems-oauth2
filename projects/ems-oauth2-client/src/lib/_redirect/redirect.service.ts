@@ -25,7 +25,7 @@ export class RedirectService {
     startRedirectFromBarramento(baseUrl:string):Observable<any>{
         let urlName = window.location.href.split('/');
         this.authenticationService.base_url = baseUrl;
-  
+        //TODO: retirar o Comando Observable.create
         return Observable.create((observer:any) =>{
             this.authenticationService.getUrl()
             .subscribe((result:any) =>{
@@ -56,6 +56,7 @@ export class RedirectService {
                 }   
 
             },
+            //TODO: retirar o erro 
             (error:any) => {
                 console.log(error)
             });

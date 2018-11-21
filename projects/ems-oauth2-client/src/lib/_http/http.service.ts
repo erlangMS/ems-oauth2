@@ -81,6 +81,7 @@ export class HttpService extends ServiceUtil implements OnInit {
         ); 
     }
 
+    //TODO: Verify this method
     private criptografarUrl(url:string):string{
 
         let array = url.split ('/');
