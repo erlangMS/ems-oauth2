@@ -1,23 +1,20 @@
 
-import { Injectable, OnDestroy } from '@angular/core';
-import {AuthenticationService} from "../_services/authentication.service";
-import {Observable} from 'rxjs';
-
-import { CookieService } from '../_cookie/cookie.service';
+import { Injectable } from '@angular/core';
+import { AuthenticationService } from "../_services/authentication.service";
+import { Observable } from 'rxjs';
 
 
 @Injectable()
-export class RedirectService implements OnDestroy {
+export class RedirectService {
     public localDateTime: number = 0;
     private auth_url:string = '';
-    private result:any = '';
 
     private static instanceAuthenticationService: any = '';
 
     private _aplicacaoInativa = 'inativatedApplication';
     private _rotaAtual = 'erlangms_actualRoute_';
 
-    constructor(private authenticationService: AuthenticationService, private cookieService: CookieService){
+    constructor(private authenticationService: AuthenticationService){
         RedirectService.instanceAuthenticationService = this.authenticationService;
     }
 
@@ -37,13 +34,7 @@ export class RedirectService implements OnDestroy {
                     this.authenticationService.getClientCode(urlName[3])
                     .subscribe((res:any) => {
                         if(this.authenticationService.activatedSystem){
-                            this.startInitVerifySessionToken()
-                            .subscribe((resp:any) => {
-                                return observer;
-                            },
-                            (error:any) => {
-                                console.log(error)
-                            })
+                            this.startInitVerifySessionToken();
                         } else {
                             localStorage.removeItem(urlName[3]);
                             localStorage.removeItem(this._rotaAtual+''+urlName[3]);
@@ -61,13 +52,7 @@ export class RedirectService implements OnDestroy {
                         console.log(error)
                     });
                 } else {
-                    this.startInitVerifySessionToken()
-                        .subscribe((resp:any) => {
-                            return observer;
-                        },
-                        (error:any) => {
-                            console.log(error)
-                        })
+                    this.startInitVerifySessionToken();
                 }   
 
             },
@@ -80,74 +65,56 @@ export class RedirectService implements OnDestroy {
   }
 
 
-    startInitVerifySessionToken(): Observable<any> {
+    private startInitVerifySessionToken() {  
+        this.VerifyIfHasTokenAndVerifyTime();
+        this.VerifyIfhasToken();
+        this.verifyIfHasCode();
+
+    }
+
+    private VerifyIfHasTokenAndVerifyTime(){
         if(this.authenticationService.currentUser.token && this.authenticationService.currentUser.timer){
             let timeAccess = Date.now();
             let total = timeAccess - Number(this.authenticationService.currentUser.timer);
-            if(this.authenticationService.currentUser.expires_in != ''){
-                if(total > this.authenticationService.currentUser.expires_in * 1000){
-                    this.authenticationService.reset();
-                    return Observable.create((observer:any) =>{
-                        return observer;
-                    })
-                } else {
-                    let urlName = window.location.href.split('/');
-                    this.authenticationService.periodicIncrement(this.authenticationService.currentUser.expires_in);
-                   return Observable.create((observer:any) =>{
-                       return observer;
-                    })
-                }
-             }
+             this.verifyTimeWaitMoreThanRefreshToken(total);
         }
+    }
 
+
+    private verifyTimeWaitMoreThanRefreshToken(total:any){
+        if(this.authenticationService.currentUser.expires_in != ''){
+            if(total > this.authenticationService.currentUser.expires_in * 1000){
+                this.authenticationService.reset();
+                
+            } else {
+                this.authenticationService.periodicIncrement(this.authenticationService.currentUser.expires_in);
+            }
+         }
+    }
+
+    private VerifyIfhasToken(){
         if (this.authenticationService.currentUser.token && this.authenticationService.currentUser.token != "") {
-            return Observable.create((observer:any) =>{
-                this.verifyTimeTokenExpired ()
-                .subscribe((resposta:any) => {
-                    return observer;
-                });
-            })
+            this.verifyTimeTokenExpired ();
         }
+    }
 
+
+    private verifyIfHasCode(){
         var code = window.location.href.split ('code=')[1];
         if (code == undefined) {
             if (this.authenticationService.currentUser.token == '') {
-                return Observable.create((observer:any) =>{
-                    this.initVerificationRedirect ()
-                    .subscribe((resp:any)=> {
-                        return observer;
-                    })
-                })
+                this.initVerificationRedirect ();
             } else {
-                return Observable.create((observer:any) => {
-                    this.authenticationService.periodicIncrement (this.authenticationService.currentUser.expires_in)
-                    .subscribe((resp:any) => {
-                        return observer;
-                    })
-                })
-                
+                this.authenticationService.periodicIncrement (this.authenticationService.currentUser.expires_in);         
             }
         } else if (this.authenticationService.currentUser.token == '' && code != undefined) {
-           return Observable.create((observer:any) => {
-                this.redirectWithCodeUrl (code)
-                .subscribe((resp:any) =>{
-                    return observer;
-                })
-            }) 
-           
+                this.redirectWithCodeUrl (code);       
         }
 
-        return Observable.create((observer:any) =>{
-            return observer;
-        });
     }
 
 
-    ngOnDestroy() {
-
-    }
-
-    private verifyTimeTokenExpired(): Observable<any> {
+    private verifyTimeTokenExpired(){
         let dateSecoundAccess = Date.now();
         this.localDateTime = Number(this.authenticationService.currentUser.timer);
         let value = dateSecoundAccess - this.localDateTime;
@@ -155,75 +122,40 @@ export class RedirectService implements OnDestroy {
             this.authenticationService.logout();
         }
 
-        return Observable.create((observer:any) =>{
-            return observer;
-        })
     }
 
-    private initVerificationRedirect(): Observable<any> {
+    private initVerificationRedirect() {
         if(this.authenticationService.currentUser.timer && this.authenticationService.currentUser.token != ""){
-            return Observable.create((observer:any) =>{
-                this.verifyTimeTokenExpired()
-                .subscribe((resp:any) => {
-                   return observer;
-                })
-            })
-           
+                this.verifyTimeTokenExpired();          
         }else{
-            if(this.authenticationService.currentUser.token != '') {
-                return Observable.create((observer:any) =>{
-                    this.authenticationService.periodicIncrement(this.authenticationService.currentUser.expires_in)
-                    .subscribe((resp:any) => {
-                       return observer;
-                    })
-                })
-               
-            } else {
-                return Observable.create((observer:any) =>{
-                    this.authenticateClient()
-                    .subscribe((resp:any) => {
-                        return observer;
-                    })
-                })
-               
+            if(this.authenticationService.currentUser.token != '') {         
+                this.authenticationService.periodicIncrement(this.authenticationService.currentUser.expires_in);              
+            } else {        
+                    this.authenticateClient();
             }
 
         }
 
     }
 
-    private redirectWithCodeUrl(code:string): Observable<any> {
+    private redirectWithCodeUrl(code:string) {
           let url_client = window.location.href;
           let array = url_client.split ('/');
           let nomeSistema = array[3].split('#');
           let base_auth = this.auth_url.split('?');
-          return Observable.create((observer:any) => {
             this.authenticationService.redirectUserTokenAccess(base_auth[0], this.authenticationService.currentUser.client_id,this.authenticationService.clientSecret,code,
                 'authorization_code','/'+nomeSistema[0]+'/index.html/' )
                 .subscribe((resposta:any) => {
-                    return observer;
-                })
-
-          })
-                  
+                })                 
     }
 
-    private authenticateClient():Observable<any>{
+    private authenticateClient(){
         if(!this.authenticationService.currentUser.token) {
             this.authenticationService.reset();
-              let urlName = window.location.href.split('/');
-              return Observable.create((observer:any) =>{
-                let parts =this.auth_url.split('client_id=');
-                let number = parts[1].split('&');
-                window.location.href = parts[0]+'client_id='+this.authenticationService.currentUser.client_id+'&'+number[1]+'&'+number[2];
-                return observer;
-              });             
-
+            let parts =this.auth_url.split('client_id=');
+            let number = parts[1].split('&');
+            window.location.href = parts[0]+'client_id='+this.authenticationService.currentUser.client_id+'&'+number[1]+'&'+number[2];                   
         }
-
-        return Observable.create((observer:any) => {
-            return observer;
-        })
     }
 
 

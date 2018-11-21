@@ -194,7 +194,7 @@ export class AuthenticationService  {
     }
 
 
-    periodicIncrement (sessionTime:number):Observable<any> {
+    periodicIncrement (sessionTime:number) {
         this.cancelPeriodicIncrement ();
         if (this.currentUser.timer) {
             let timeAccess = Date.now ();
@@ -233,10 +233,6 @@ export class AuthenticationService  {
 
         }, this._transformaMilissegundos);
 
-        return Observable.create((observer:any) =>{
-            return observer;
-        });
-
     };
 
     private formatDate(timer:number):string{
@@ -268,16 +264,12 @@ export class AuthenticationService  {
 
     }
 
-    cancelPeriodicIncrement ():Observable<any> {
+    cancelPeriodicIncrement () {
         if (this.intervalId != null) {
             clearInterval (this.intervalId);AuthenticationService
             this.intervalId = null;
             this.time = 0;
         }
-
-        return Observable.create((observer:any) =>{
-            return observer;
-        });
     };
 
     logout ():void {
