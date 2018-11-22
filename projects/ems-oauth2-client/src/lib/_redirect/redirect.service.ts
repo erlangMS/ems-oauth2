@@ -23,9 +23,8 @@ export class RedirectService {
     }
 
     startRedirectFromBarramento(baseUrl:string):Observable<any>{
-        let urlName = window.location.href.split('/');
+        let urlName = this.getArrayUrl();
         this.authenticationService.base_url = baseUrl;
-        //TODO: retirar o Comando Observable.create
         return Observable.create((observer:any) =>{
             this.authenticationService.getUrl()
             .subscribe((result:any) =>{
@@ -61,9 +60,7 @@ export class RedirectService {
                 console.log(error)
             });
         });
-
-           
-  }
+     }
 
 
     private startInitVerifySessionToken() {  
@@ -140,9 +137,8 @@ export class RedirectService {
     }
 
     private redirectWithCodeUrl(code:string) {
-          let url_client = window.location.href;
-          let array = url_client.split ('/');
-          let nomeSistema = array[3].split('#');
+          
+          let nomeSistema = this.getArrayUrl()[3].split('#');
           let base_auth = this.auth_url.split('?');
             this.authenticationService.redirectUserTokenAccess(base_auth[0], this.authenticationService.currentUser.client_id,this.authenticationService.clientSecret,code,
                 'authorization_code','/'+nomeSistema[0]+'/index.html/' )
@@ -157,6 +153,11 @@ export class RedirectService {
             let number = parts[1].split('&');
             window.location.href = parts[0]+'client_id='+this.authenticationService.currentUser.client_id+'&'+number[1]+'&'+number[2];                   
         }
+    }
+
+    private getArrayUrl() {
+        let url_client = window.location.href;
+        return  url_client.split ('/');
     }
 
 

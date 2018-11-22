@@ -7,103 +7,111 @@ import { RedirectService } from '../_redirect/redirect.service';
 export class AuthInterceptor implements HttpInterceptor {
 
     static headers: HttpHeaders  = new HttpHeaders().set('content-type','application/json; charset=utf-8');
-
     public static keyHeader:string = '';
     public static valueHeader:string = '';
 
-    constructor(){
-        
+    private copieReq:any;
+    private protocol:any[] = [''];
+    private dominio:any;
+    private nomeSistema;
+    private arrayUrl:any[];
+    private urlInstance: any;
+    private urlRedirect:string = '';
+
+    intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        this.copieReq = req.clone();
+        this.nomeSistema = this.getArrayUrl()[3].split('#');
+        this.arrayUrl =  RedirectService.getInstance().base_url.split('/');
+        this.urlInstance = RedirectService.getInstance().base_url;
+
+        this.verifyIfStartInAnotherPage();
+        this.verifySizeUrl();
+        this.VerifyIfHasAnotherRoute();
+        this.addDadosInUrl();
+
+        if(RedirectService.getInstance().currentUser.token != '') { 
+            this.insertAuthenticationTokenInHeader();
+            this.separeteProtocol();
+            this.verifyIfHttpOrHttps();
+        } else if(this.urlInstance) {
+            this.separeteProtocol();
+            this.verifyIfHttpOrHttps();
+        } 
+    
+        this.verifyIfCopyUrlChanges();
+
+        return next.handle(this.copieReq.clone({url:this.copieReq.url}));
     }
 
-    //TODO: divided in many methods
-    intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        let copieReq:any = req.clone();
-
-        let protocol:any[] = [''];
-        //TODO: change get url to unique method
+    private getArrayUrl() {
         let url = window.location.href;
-        let array = url.split ('/');
-        let dominio:any;
-        let nomeSistema = array[3].split('#');
-        let arrayUrl:any[] =  RedirectService.getInstance().base_url.split('/');
-        let urlInstance: any = RedirectService.getInstance().base_url;
-        let urlRedirect:string = '';
+        return url.split ('/');
+    }
 
-        //TODO: Separeta in anhoter mehtod
-        if(arrayUrl[0] == "") {
-            if(localStorage.getItem(nomeSistema + '_url') != null){
-                var dados:any = localStorage.getItem(nomeSistema + '_url'); 
-                arrayUrl = dados.split('/');
-                urlInstance = dados;
+    private verifyIfStartInAnotherPage(){
+        if(this.arrayUrl[0] == "") {
+            if(localStorage.getItem(this.nomeSistema + '_url') != null){
+                var dados:any = localStorage.getItem(this.nomeSistema + '_url'); 
+                this.arrayUrl = dados.split('/');
+                this.urlInstance = dados;
             }      
         }
+    }
 
-        //TODO: Verify and separete in anhoter method
-        if(array.length == 6){
-            dominio = array[5].split('?');
+    private verifySizeUrl(){
+        if(this.getArrayUrl().length == 6){
+            this.dominio = this.getArrayUrl()[5].split('?');
         } else {
-            dominio = array[4].split('?');
+            this.dominio = this.getArrayUrl()[4].split('?');
         }
+    }
 
-        //TODO: Verify and separete in anhoter method
-        if(dominio[0] != "" && dominio[0] != "home" && dominio[0] != "index.html"){ 
-                localStorage.setItem("erlangms_actualRoute_"+nomeSistema,dominio[0]);
+    private VerifyIfHasAnotherRoute(){
+        if(this.dominio[0] != "" && this.dominio[0] != "home" && this.dominio[0] != "index.html"){ 
+            localStorage.setItem("erlangms_actualRoute_"+this.nomeSistema,this.dominio[0]);
         } 
 
-        //TODO: Verify and separete in anhoter method
-        if(arrayUrl[3] == 'dados'){
-            arrayUrl.splice(3,1);
-            urlRedirect = arrayUrl[0]+"//"+arrayUrl[2];
+    }
+
+    private addDadosInUrl(){
+        if(this.arrayUrl[3] == 'dados'){
+            this.arrayUrl.splice(3,1);
+            this.urlRedirect = this.arrayUrl[0]+"//"+this.arrayUrl[2];
         } else {
-            urlRedirect = urlInstance;
+            this.urlRedirect = this.urlInstance;
         }
+    }
 
-        //TODO: Verify and separete in anhoter method
-        if(RedirectService.getInstance().currentUser.token != '') {
-            if(AuthInterceptor.keyHeader == ''){
-                AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8')
-                .append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
-            }else{
-                AuthInterceptor.headers = new HttpHeaders().set(AuthInterceptor.keyHeader,AuthInterceptor.valueHeader)
-                .append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
-            }
-
-          
-
-            //TODO: Vefify ifs 
-            if(copieReq != undefined) {
-                if(copieReq.url != undefined) {
-                    protocol = copieReq.url.split (':');
-                }
-            }
-    
-            if(protocol[0] == 'http' || protocol[0] == 'https') {         
-    
-            } else if(copieReq != undefined && urlInstance){
-                copieReq.url = urlRedirect + '' + copieReq.url;
-            }
-        } else if(urlInstance) {
-            if(copieReq != undefined) {
-                if(copieReq.url != undefined) {
-                    protocol = copieReq.url.split (':');
-                }
-            }
-    
-            if(protocol[0] == 'http' || protocol[0] == 'https') {
-
-            } else if(copieReq != undefined && urlInstance){
-                copieReq.url = urlRedirect + '' + copieReq.url;
-            }
-    
-        } 
-        
-
-        //TODO: Verify and separete in anhoter method
-        if(copieReq != undefined){
-            copieReq.headers = AuthInterceptor.headers;
+    private insertAuthenticationTokenInHeader(){
+        if(AuthInterceptor.keyHeader == ''){
+            AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8')
+            .append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
+        }else{
+            AuthInterceptor.headers = new HttpHeaders().set(AuthInterceptor.keyHeader,AuthInterceptor.valueHeader)
+            .append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
         }
+    }
 
-        return next.handle(copieReq.clone({url:copieReq.url}));
+    private separeteProtocol(){
+        if(this.copieReq != undefined) {
+            if(this.copieReq.url != undefined) {
+                this.protocol = this.copieReq.url.split (':');
+            }
+        }
+    }
+
+    private verifyIfHttpOrHttps(){
+        if(this.protocol[0] == 'http' || this.protocol[0] == 'https') {         
+    
+        } else if(this.copieReq != undefined && this.urlInstance){
+            this.copieReq.url = this.urlRedirect + '' + this.copieReq.url;
+        }
+    }
+
+    private verifyIfCopyUrlChanges() {
+        if(this.copieReq != undefined){
+           this. copieReq.headers = AuthInterceptor.headers;
+        }
     }
 
 } 

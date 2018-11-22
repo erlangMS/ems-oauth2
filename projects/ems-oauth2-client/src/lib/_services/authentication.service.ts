@@ -24,8 +24,6 @@ export class AuthenticationService  {
 
     public textDate = '';
     private intervalId:any = null;
-    private urlSistema:any = '';
-    private partesUrlSistema:any = '';
     public protocoloSistema:any = '';
     public dominioSistema:any = '';
 
@@ -62,11 +60,9 @@ export class AuthenticationService  {
     }
 
     private dadosDaUrl() {
-        this.urlSistema = window.location.href;
-        this.partesUrlSistema = this.urlSistema.split ('/');
-        this.nomeDoSistema = this.partesUrlSistema[3].split('#');
-        this.protocoloSistema = this.partesUrlSistema[0];
-        this.dominioSistema = this.partesUrlSistema[2];
+        this.nomeDoSistema = this.getArrayUrl()[3].split('#');
+        this.protocoloSistema = this.getArrayUrl()[0];
+        this.dominioSistema = this.getArrayUrl()[2];
 
     }
 
@@ -148,15 +144,7 @@ export class AuthenticationService  {
 
     redirectUserTokenAccess (url:string, client_id:any, client_secret:string, code:string, grant_type:string,
                              redirect_uri:string):Observable<boolean> {
-        
-        //TODO: Verify if use this variable
-        var obj = {
-            client_id: client_id,
-            client_secret: client_secret,
-            code: code,
-            redirect_uri: redirect_uri,
-            grant_type: grant_type
-        }
+
         AuthInterceptor.headers = new HttpHeaders().set('content-type','application/x-www-form-urlencoded');
           return this.httpAngular.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
             .pipe(
@@ -208,7 +196,6 @@ export class AuthenticationService  {
 
         this.intervalId = setInterval (() => {
             this.textDate = this.formatDate(dateFormat);
-            //TODO: verify this while
             while(this.textDate == this._errorNotANumber){
                this.textDate = this.formatDate(dateFormat); 
             }
@@ -275,13 +262,8 @@ export class AuthenticationService  {
     };
 
     logout ():void {
-        //TODO: Without use this, use unique method for extract url
-        let url = window.location.href;
-        let array = url.split ('/');
-        let dominio = array[2].split(':');
-
+        let dominio = this.getArrayUrl()[2].split(':');
         this.getUrl()
-
         .subscribe((resp:any)=>{
             this.cancelPeriodicIncrement ();
             localStorage.removeItem (this.nomeDoSistema);
@@ -293,11 +275,13 @@ export class AuthenticationService  {
         });
     }
 
-    reset ():void {
+    private getArrayUrl(){
         let url = window.location.href;
-        let array = url.split ('/');
-        let dominio = array[2].split(':');
-        
+        return url.split ('/');
+    }
+
+    reset ():void {
+        let dominio = this.getArrayUrl()[2].split(':');       
         this.getUrl()
         .subscribe((resp:any)=>{   
             this.cancelPeriodicIncrement ();
