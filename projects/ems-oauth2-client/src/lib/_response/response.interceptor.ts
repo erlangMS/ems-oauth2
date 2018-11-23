@@ -21,7 +21,6 @@ export class ReponseInterceptor implements HttpInterceptor {
                     return event;
                 },(error: HttpErrorResponse) => {
                     console.log(error);
-                    let verify:any = undefined;
                     let url = window.location.href;
                     let array = url.split ('/');
                     let nomeSistema:any = array[3].split('#');   

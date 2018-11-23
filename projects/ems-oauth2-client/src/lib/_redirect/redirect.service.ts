@@ -41,8 +41,7 @@ export class RedirectService {
                             if(myVal != null){
                             myVal.innerHTML = `
                                     <h2>Sistema temporariamente indisponível.</h2>
-                                    `
-                            
+                                    `        
                             }
                         }
         

@@ -10,37 +10,48 @@ export class AuthInterceptor implements HttpInterceptor {
     public static keyHeader:string = '';
     public static valueHeader:string = '';
 
-    private copieReq:any;
-    private protocol:any[] = [''];
-    private dominio:any;
-    private nomeSistema;
-    private arrayUrl:any[];
-    private urlInstance: any;
-    private urlRedirect:string = '';
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        this.copieReq = req.clone();
-        this.nomeSistema = this.getArrayUrl()[3].split('#');
-        this.arrayUrl =  RedirectService.getInstance().base_url.split('/');
-        this.urlInstance = RedirectService.getInstance().base_url;
+        let copieReq:any = req.clone();
+        let protocol:any[] = [''];
+        let dominio:any;
+        let nomeSistema = this.getArrayUrl()[3].split('#');
+        let arrayUrl:any[] =  RedirectService.getInstance().base_url.split('/');
+        let urlInstance: any = RedirectService.getInstance().base_url;
+        let urlRedirect:string = '';
+        let resultObject:any = {};
 
-        this.verifyIfStartInAnotherPage();
-        this.verifySizeUrl();
-        this.VerifyIfHasAnotherRoute();
-        this.addDadosInUrl();
+        resultObject = this.verifyIfStartInAnotherPage(arrayUrl, nomeSistema, urlInstance);
+        arrayUrl = resultObject.arrayUrl;
+        urlInstance = resultObject.urlInstance;
+
+        resultObject = this.verifySizeUrl(dominio);
+        dominio = resultObject.dominio;
+
+        this.VerifyIfHasAnotherRoute(dominio, nomeSistema);
+        
+        resultObject = this.addDadosInUrl(arrayUrl, urlRedirect, urlInstance);
+        urlRedirect = resultObject.urlRedirect;
 
         if(RedirectService.getInstance().currentUser.token != '') { 
             this.insertAuthenticationTokenInHeader();
-            this.separeteProtocol();
-            this.verifyIfHttpOrHttps();
-        } else if(this.urlInstance) {
-            this.separeteProtocol();
-            this.verifyIfHttpOrHttps();
+            resultObject = this.separeteProtocol(copieReq, protocol);
+            protocol = resultObject.protocol;
+
+            resultObject = this.verifyIfHttpOrHttps(protocol, copieReq, urlInstance, urlRedirect);
+            copieReq = resultObject.copieReq;
+        } else if(urlInstance) {
+            resultObject = this.separeteProtocol(copieReq, protocol);
+            protocol = resultObject.protocol;
+
+            resultObject = this.verifyIfHttpOrHttps(protocol, copieReq, urlInstance, urlRedirect);
+            copieReq = resultObject.copieReq;
         } 
     
-        this.verifyIfCopyUrlChanges();
+       resultObject = this.verifyIfCopyUrlChanges(copieReq);
+       copieReq = resultObject.copieReq;
 
-        return next.handle(this.copieReq.clone({url:this.copieReq.url}));
+        return next.handle(copieReq.clone({url:copieReq.url}));
     }
 
     private getArrayUrl() {
@@ -48,38 +59,44 @@ export class AuthInterceptor implements HttpInterceptor {
         return url.split ('/');
     }
 
-    private verifyIfStartInAnotherPage(){
-        if(this.arrayUrl[0] == "") {
-            if(localStorage.getItem(this.nomeSistema + '_url') != null){
-                var dados:any = localStorage.getItem(this.nomeSistema + '_url'); 
-                this.arrayUrl = dados.split('/');
-                this.urlInstance = dados;
+    private verifyIfStartInAnotherPage(arrayUrl:any, nomeSistema: any, urlInstance: any){
+        if(arrayUrl[0] == "") {
+            if(localStorage.getItem(nomeSistema + '_url') != null){
+                var dados:any = localStorage.getItem(nomeSistema + '_url'); 
+                arrayUrl = dados.split('/');
+                urlInstance = dados;
             }      
         }
+
+        return {arrayUrl: arrayUrl, urlInstance: urlInstance}
     }
 
-    private verifySizeUrl(){
+    private verifySizeUrl(dominio: any){
         if(this.getArrayUrl().length == 6){
-            this.dominio = this.getArrayUrl()[5].split('?');
+            dominio = this.getArrayUrl()[5].split('?');
         } else {
-            this.dominio = this.getArrayUrl()[4].split('?');
+            dominio = this.getArrayUrl()[4].split('?');
         }
+
+        return {dominio: dominio}
     }
 
-    private VerifyIfHasAnotherRoute(){
-        if(this.dominio[0] != "" && this.dominio[0] != "home" && this.dominio[0] != "index.html"){ 
-            localStorage.setItem("erlangms_actualRoute_"+this.nomeSistema,this.dominio[0]);
+    private VerifyIfHasAnotherRoute(dominio: any, nomeSistema:any){
+        if(dominio[0] != "" && dominio[0] != "home" && dominio[0] != "index.html"){ 
+            localStorage.setItem("erlangms_actualRoute_"+nomeSistema,dominio[0]);
         } 
 
     }
 
-    private addDadosInUrl(){
-        if(this.arrayUrl[3] == 'dados'){
-            this.arrayUrl.splice(3,1);
-            this.urlRedirect = this.arrayUrl[0]+"//"+this.arrayUrl[2];
+    private addDadosInUrl(arrayUrl: any, urlRedirect: any, urlInstance: any){
+        if(arrayUrl[3] == 'dados'){
+            arrayUrl.splice(3,1);
+            urlRedirect = arrayUrl[0]+"//"+arrayUrl[2];
         } else {
-            this.urlRedirect = this.urlInstance;
+            urlRedirect = urlInstance;
         }
+
+        return {urlRedirect: urlRedirect}
     }
 
     private insertAuthenticationTokenInHeader(){
@@ -92,26 +109,31 @@ export class AuthInterceptor implements HttpInterceptor {
         }
     }
 
-    private separeteProtocol(){
-        if(this.copieReq != undefined) {
-            if(this.copieReq.url != undefined) {
-                this.protocol = this.copieReq.url.split (':');
+    private separeteProtocol(copieReq: any, protocol: any){
+        if(copieReq != undefined) {
+            if(copieReq.url != undefined) {
+                protocol = copieReq.url.split (':');
             }
         }
+
+        return {protocol: protocol}
     }
 
-    private verifyIfHttpOrHttps(){
-        if(this.protocol[0] == 'http' || this.protocol[0] == 'https') {         
+    private verifyIfHttpOrHttps(protocol: any, copieReq: any, urlInstance: any, urlRedirect: any){
+        if(protocol[0] == 'http' || protocol[0] == 'https') {         
     
-        } else if(this.copieReq != undefined && this.urlInstance){
-            this.copieReq.url = this.urlRedirect + '' + this.copieReq.url;
+        } else if(copieReq != undefined && urlInstance){
+            copieReq.url = urlRedirect + '' + copieReq.url;
         }
+
+        return {copieReq: copieReq}
     }
 
-    private verifyIfCopyUrlChanges() {
-        if(this.copieReq != undefined){
-           this. copieReq.headers = AuthInterceptor.headers;
+    private verifyIfCopyUrlChanges(copieReq: any) {
+        if(copieReq != undefined){
+            copieReq.headers = AuthInterceptor.headers;
         }
+        return {copieReq: copieReq}
     }
 
 } 
