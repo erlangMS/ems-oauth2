@@ -90,7 +90,7 @@ export class HttpService extends ServiceUtil implements OnInit {
         let protocol = url.split (':');
 
         
-        if(RedirectService.getInstance().erlangmsUrlMask == "true"){
+        if(RedirectService.getInstance().erlangmsUrlMask == true){
             if(protocol[0] == 'http' || protocol[0] == 'https'){
                 dominio = array[0]+"//"+array[2];
             }
