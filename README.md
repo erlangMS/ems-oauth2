@@ -1,27 +1,84 @@
 # EmsOauth2
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.0.8.
+Projeto ems-oauth2-client [Oauth2 Client](https://github.com/erlangMS/oauth2-client.git) version 6.3.22.
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Para rodar a versão certa do projeto é necessário as seguintes versões: 
 
-## Code scaffolding
+nodejs  deve ser <= v8.10.0
+npm deve ser <= 6.9.0
+angular/cli  = 6.0.8
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+`sudo apt install nodejs`
+`sudo npm install -g @angular/cli@6.0.8`
+
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Para buildar o pacote ems-oauth2-client é necessário os seguintes passos:
+`ng build ems-oauth2-client`
+Será gerado na pasta dist o pacote ems-oauth2-client. Dentro de dist e da pasta ems-oauth2-client vá na pasta fesm5, no arquivo ems-oauth2-client.js e dentro da pasta ems-oauth2-client.js trocar esta parte do arquivo
 
-## Running unit tests
+`HttpService.ctorParameters = function () { return [
+        { type: HttpClient }
+    ]; };
+    __decorate([
+        __param(1, Optional()), __param(2, Optional()), __param(3, Optional()), __param(4, Optional()),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", [String, Object, Object, HttpHeaders, Number]),
+        __metadata("design:returntype", Observable)
+    ], HttpService.prototype, "get", null);
+    __decorate([
+        __param(2, Optional()), __param(3, Optional()), __param(4, Optional()),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", [String, String, Object, Object, HttpHeaders]),
+        __metadata("design:returntype", Observable)
+    ], HttpService.prototype, "post", null);
+    __decorate([
+        __param(2, Optional()), __param(3, Optional()), __param(4, Optional()),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", [String, String, Object, Object, HttpHeaders]),
+        __metadata("design:returntype", Observable)
+    ], HttpService.prototype, "put", null);
+    __decorate([
+        __param(1, Optional()), __param(2, Optional()), __param(3, Optional()),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", [String, Object, Object, HttpHeaders]),
+        __metadata("design:returntype", Observable)
+    ], HttpService.prototype, "delete", null);
+    return HttpService;
+}(ServiceUtil));`
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+por esta parte do arquivo em ambos os arquivos compilados .js
 
-## Running end-to-end tests
+`HttpService.ctorParameters = function () { return [
+        { type: HttpClient }
+    ]; };
+    __decorate([
+        __param(1, Optional()), __param(2, Optional()), __param(3, Optional()), __param(4, Optional()),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", [String, Object, Object, HttpHeaders, Number]),
+        __metadata("design:returntype", Observable$1)
+    ], HttpService.prototype, "get", null);
+    __decorate([
+        __param(2, Optional()), __param(3, Optional()), __param(4, Optional()),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", [String, String, Object, Object, HttpHeaders]),
+        __metadata("design:returntype", Observable$1)
+    ], HttpService.prototype, "post", null);
+    __decorate([
+        __param(2, Optional()), __param(3, Optional()), __param(4, Optional()),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", [String, String, Object, Object, HttpHeaders]),
+        __metadata("design:returntype", Observable$1)
+    ], HttpService.prototype, "put", null);
+    __decorate([
+        __param(1, Optional()), __param(2, Optional()), __param(3, Optional()),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", [String, Object, Object, HttpHeaders]),
+        __metadata("design:returntype", Observable$1)
+    ], HttpService.prototype, "delete", null);
+    return HttpService;
+}(ServiceUtil));`
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).

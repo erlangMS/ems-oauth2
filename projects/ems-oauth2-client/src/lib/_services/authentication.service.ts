@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
+import { Router, ActivatedRoute } from '@angular/router';
 
 import { map } from 'rxjs/operators';
 
@@ -57,7 +58,8 @@ export class AuthenticationService  {
 
     public nomeDoSistema:any = "";
 
-    constructor (private http:HttpService, private cookieService:CookieService, private httpAngular: HttpClient) {
+    constructor (private http:HttpService, private cookieService:CookieService, private httpAngular: HttpClient, private route: ActivatedRoute,
+        private router: Router) {
         this.preencherDados();
     }
 
@@ -155,9 +157,12 @@ export class AuthenticationService  {
             code: code,
             redirect_uri: redirect_uri,
             grant_type: grant_type
-        }
+        };
+
+        var passport  = this.route.snapshot.paramMap.get('passport');
+
         AuthInterceptor.headers = new HttpHeaders().set('content-type','application/x-www-form-urlencoded');
-          return this.httpAngular.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri)
+          return this.httpAngular.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri + '&passport='+passport)
             .pipe(
                 map ((resposta:any) => {
                     this.addValueUser(resposta, true);
