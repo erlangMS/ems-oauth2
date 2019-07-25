@@ -1,6 +1,5 @@
-import {Injectable} from '@angular/core';
+import {Injectable, Optional} from '@angular/core';
 import {Observable} from 'rxjs';
-import { Router, ActivatedRoute } from '@angular/router';
 
 import { map } from 'rxjs/operators';
 
@@ -58,8 +57,7 @@ export class AuthenticationService  {
 
     public nomeDoSistema:any = "";
 
-    constructor (private http:HttpService, private cookieService:CookieService, private httpAngular: HttpClient, private route: ActivatedRoute,
-        private router: Router) {
+    constructor (private http:HttpService, private cookieService:CookieService, private httpAngular: HttpClient) {
         this.preencherDados();
     }
 
@@ -147,7 +145,9 @@ export class AuthenticationService  {
 
     }
 
-
+    /*
+     * Método principal para chamar o /authorize
+     */
     redirectUserTokenAccess (url:string, client_id:any, client_secret:string, code:string, grant_type:string,
                              redirect_uri:string):Observable<boolean> {
 
@@ -159,10 +159,10 @@ export class AuthenticationService  {
             grant_type: grant_type
         };
 
-        var passport  = this.route.snapshot.paramMap.get('passport');
+        var passport = window.location.href.split('passport=')[1];
 
         AuthInterceptor.headers = new HttpHeaders().set('content-type','application/x-www-form-urlencoded');
-          return this.httpAngular.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri + '&passport='+passport)
+          return this.httpAngular.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri + '&passport=' + passport)
             .pipe(
                 map ((resposta:any) => {
                     this.addValueUser(resposta, true);

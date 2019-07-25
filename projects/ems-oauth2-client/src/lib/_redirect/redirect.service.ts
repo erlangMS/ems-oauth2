@@ -3,6 +3,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import {AuthenticationService} from "../_services/authentication.service";
 import {Observable} from 'rxjs';
 
+
 import { CookieService } from '../_cookie/cookie.service';
 
 
@@ -28,12 +29,23 @@ export class RedirectService implements OnDestroy {
     startRedirectFromBarramento(baseUrl:string):Observable<any>{
         let urlName = window.location.href.split('/');
         this.authenticationService.base_url = baseUrl;
+        var passport  = window.location.href.split('passport=')[1];
   
         return Observable.create((observer:any) =>{
             this.authenticationService.getUrl()
             .subscribe((result:any) =>{
                 this.auth_url = result.url;
-                if(this.authenticationService.currentUser.client_id <= 0){
+                if(passport != undefined){
+                      /*
+                       * Quando vier com passport como parametro executa está função passando o code null
+                       * isso evita que seja executado o fluxo completo da aplicação e indo direto para autenticação
+                       */
+                    this.redirectWithCodeUrl(null)
+                        .subscribe((result:any)  =>{
+                            return observer;
+                        });
+
+                } else if(this.authenticationService.currentUser.client_id <= 0){
                     this.authenticationService.getClientCode(urlName[3])
                     .subscribe((res:any) => {
                         if(this.authenticationService.activatedSystem){
@@ -199,7 +211,7 @@ export class RedirectService implements OnDestroy {
           let base_auth = this.auth_url.split('?');
           return Observable.create((observer:any) => {
             this.authenticationService.redirectUserTokenAccess(base_auth[0], this.authenticationService.currentUser.client_id,this.authenticationService.clientSecret,code,
-                'authorization_code','/'+nomeSistema[0]+'/index.html/' )
+                'authorization_code','/'+nomeSistema[0]+'/index.html/')
                 .subscribe((resposta:any) => {
                     return observer;
                 })
