@@ -1,46 +1,42 @@
-
-import {throwError as observableThrowError,  Observable } from 'rxjs';
-import {  Response }   from '@angular/http';
-
+import { Observable } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { throwError } from 'rxjs'
 
 export class ServiceUtil {
 
-  // extrai lista da resposta http
-  public extractData(res: Response) {
-    let body = res.json();
-    return body.data || { };
+ // extrai lista da resposta http
+ public extractData(res: Response) {
+  let body = res.json();
+  return body || { };
+}
+
+// manipula erros da resposta http
+public handleError(err: HttpErrorResponse | any):Observable<any> {
+  let errMsg: string;
+  if(err.messagem) {
+    errMsg = err.messagem;
+  }else if(err.status == 404) {
+    errMsg = "Servidor de dados indisponível. Tente mais tarde";
+  } else if (err.status == 401) {
+    errMsg = "Acesso negado para a funcionalidade requisitada";
+  } else if (err.status == 400) {
+    errMsg = "Solicitação inválida. Tente mais tarde";
+  } else if (err.status == 500) {
+    errMsg = "Erro interno do servidor. Tente mais tarde";
+  } else {
+    errMsg = "Erro indeterminado. Consulte o administrador do sistema"
   }
 
-  // manipula erros da resposta http
-  public handleError(error: Response | any):Observable<any> {
-    let errMsg: string;
-    if (error instanceof Response) {
-      const body = error.json() || '';
-      const err = body.message || JSON.stringify(body);
-      errMsg = err;
+  return  throwError(errMsg);
+}
 
-    } else {
-      errMsg = error.message != undefined ? error.message : error;
-    }
-
-    if(errMsg == "{\"isTrusted\":true}"){
-      errMsg= "Servidor de Dados Indisponível Temporariamente.";
-    }else if(errMsg == "{\"error\":\"eunavailable_service\"}"){
-      errMsg= "Servidor de Dados Indisponível Temporariamente.";
-    } else if( errMsg == "{\"error\": \"enoent_service_contract\"}"){
-      return new Observable();
-    }else if(errMsg == "{\"error\": \"einvalid_request\"}"){
-      errMsg = "Requisição inválida."; 
-    } else if(errMsg == "{\"error\": \"etimeout_service\"}"){
-      errMsg = "Servidor de Dados Indisponível Temporariamente."
-    }else if(errMsg == "{\"error\": \"access_denied\"}"){
-      return new Observable();
-    }  else {
-      return observableThrowError(error);
-    }
-    
-    return observableThrowError(errMsg);
+removeNull(key, value) {
+  // Filtering out properties
+  if (value === null) {
+    return undefined;
   }
+  return value;
+}
 
 
 

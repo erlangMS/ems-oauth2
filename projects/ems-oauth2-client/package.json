@@ -2,16 +2,7 @@
   "name": "ems-oauth2-client",
   "version": "6.3.22",
   "peerDependencies": {
-    "@angular/core": "^6.0.3",
-    "@angular/compiler": "^6.0.3",
-    "@angular/animations": "^6.0.3",
-    "@angular/forms": "^6.0.3",
-    "@angular/http": "^6.0.3",
-    "@angular/platform-browser": "^6.0.3",
-    "@angular/platform-browser-dynamic": "^6.0.3",
-    "@angular/router": "^6.0.3",
-    "core-js": "^2.5.4",
-    "rxjs": "6.0.0",
-    "zone.js": "^0.8.26"
+    "@angular/common": "^8.2.0",
+    "@angular/core": "^8.2.0"
   }
 }
