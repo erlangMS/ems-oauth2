@@ -5,12 +5,11 @@ import { RedirectService } from '../_redirect/redirect.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { throwError, Observable } from 'rxjs';
 import { Response } from '@angular/http';
+import { AuthenticationService } from '../_services/authentication.service';
 
 
 @Injectable()
 export class HttpService implements OnInit {
-
-    private dados: string = '/dados/';
 
     constructor(private http: HttpClient) {
 
@@ -83,9 +82,9 @@ export class HttpService implements OnInit {
 
     private criptografarUrl(url: string): string {
         if (RedirectService.getInstance().erlangmsUrlMask == true) {
-            return "/erl.ms/" + btoa(url);
+            return "/erl.ms/" + btoa(AuthenticationService.base_url_temp + url);
         } else {
-            return url;
+            return AuthenticationService.base_url_temp + url;
         }
     }
 

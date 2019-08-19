@@ -25,6 +25,7 @@ export class AuthenticationService  {
     public textDate = '';
     private intervalId:any = null;
     private urlSistema:any = '';
+    public auth_url:string = '';
     private partesUrlSistema:any = '';
     public protocoloSistema:any = '';
     public dominioSistema:any = '';
@@ -32,6 +33,7 @@ export class AuthenticationService  {
     private protocol:string = '';
     private dominio:string = '';
     private urlAuthorize:string = '';
+    public static base_url_temp:string = '';
     
     //constantes
     private _transformaMilissegundos = 1000;
@@ -97,26 +99,14 @@ export class AuthenticationService  {
         }).pipe(
             map((res:any) => { 
                 this.dadosDaUrl();
-                this.erlangmsUrlMask = res.url_mask;
                 if(res.client_secret){
                     this.clientSecret = res.client_secret;
                 }
-                let array_auth = res.auth_url.split('/');
 
-                this.protocol = array_auth[0];
-                this.dominio = array_auth[2];
                 this.currentUser.client_id = res.app_id;
-
                 ResourceOwner.client_id = res.app_id;
-                
-                if(array_auth[3] == 'dados') {
-                    array_auth.splice(3,1);
-                }
-
-                this.urlAuthorize = array_auth[3];
-                this.urlAuthorize = "/dados/"+this.urlAuthorize;
-
-                let url =  this.protocol+'//'+this.dominio+this.urlAuthorize+ '?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
+            
+                let url = this.auth_url+'?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
 
                 return {url:url}
             })          
@@ -160,9 +150,16 @@ export class AuthenticationService  {
         };
 
         var passport = window.location.href.split('passport=')[1];
+        var body = '';
+
+        if(passport != undefined) {
+            body = 'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri + '&passport=' + passport;
+        } else {
+            body = 'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri;
+        }
 
         AuthInterceptor.headers = new HttpHeaders().set('content-type','application/x-www-form-urlencoded');
-          return this.httpAngular.post (url,'grant_type=' + grant_type + '&client_id=' + client_id + '&client_secret=' + client_secret + '&code=' + code + '&redirect_uri=' + redirect_uri + '&passport=' + passport)
+          return this.httpAngular.post (url,body)
             .pipe(
                 map ((resposta:any) => {
                     this.addValueUser(resposta, true);
