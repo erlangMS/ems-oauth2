@@ -27,8 +27,8 @@ export class RedirectService implements OnDestroy {
     }
 
     startRedirectFromBarramento(baseUrl):Observable<any>{
-        console.log(baseUrl);
         let urlName = window.location.href.split('/');
+
         this.authenticationService.base_url = baseUrl.base_url;
         AuthenticationService.base_url_temp = baseUrl.base_url;
         this.authenticationService.auth_url = baseUrl.auth_url;
@@ -212,7 +212,6 @@ export class RedirectService implements OnDestroy {
           let url_client = window.location.href;
           let array = url_client.split ('/');
           let nomeSistema = array[3].split('#');
-          let base_auth = this.auth_url.split('?');
           return Observable.create((observer:any) => {
             this.authenticationService.redirectUserTokenAccess(this.authenticationService.auth_url, this.authenticationService.currentUser.client_id,this.authenticationService.clientSecret,code,
                 'authorization_code','/'+nomeSistema[0]+'/index.html/')
