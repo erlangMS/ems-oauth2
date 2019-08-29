@@ -2,8 +2,6 @@ import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpHeaders } fro
 import { Observable } from 'rxjs';
 import { Injectable } from "@angular/core";
 import { RedirectService } from '../_redirect/redirect.service';
-import { controlNameBinding } from "@angular/forms/src/directives/reactive_directives/form_control_name";
-import { createOfflineCompileUrlResolver } from "@angular/compiler";
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -19,7 +17,6 @@ export class AuthInterceptor implements HttpInterceptor {
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         let copieReq:any = req.clone();
-        let url = window.location.href;
        
         if(RedirectService.getInstance().currentUser.token != '') {
             if(AuthInterceptor.keyHeader == ''){

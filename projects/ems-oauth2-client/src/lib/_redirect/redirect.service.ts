@@ -32,6 +32,7 @@ export class RedirectService implements OnDestroy {
         this.authenticationService.base_url = baseUrl.base_url;
         AuthenticationService.base_url_temp = baseUrl.base_url;
         this.authenticationService.auth_url = baseUrl.auth_url;
+        this.authenticationService.erlangmsUrlMask = baseUrl.url_mask;
 
         var passport  = window.location.href.split('passport=')[1];
   
