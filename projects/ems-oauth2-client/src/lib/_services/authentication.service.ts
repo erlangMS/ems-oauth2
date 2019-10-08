@@ -20,6 +20,7 @@ export class AuthenticationService  {
     public activatedSystem = true;
     public erlangmsUrlMask:any = "false";
     public clientSecret:string = 'CPD';
+    public dadosBaseUrl:any = '';
 
 
     public textDate = '';
@@ -92,25 +93,15 @@ export class AuthenticationService  {
     }
 
 
-    getUrl ():Observable<any> {
-        return this.httpAngular.get (this.protocoloSistema + '//' + this.dominioSistema + '/'+this.nomeDoSistema+'/'+this._nomeArquivoBarramento,{
-            observe:'body',
-            responseType:'json'
-        }).pipe(
-            map((res:any) => { 
-                this.dadosDaUrl();
-                if(res.client_secret){
-                    this.clientSecret = res.client_secret;
-                }
-
-                this.currentUser.client_id = res.app_id;
-                ResourceOwner.client_id = res.app_id;
-            
-                let url = this.auth_url+'?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
-
-                return {url:url}
-            })          
-        );
+    getUrl ():any {
+        this.dadosDaUrl();
+        if(this.dadosBaseUrl.client_secret){
+            this.clientSecret = this.dadosBaseUrl.client_secret;
+        }
+        this.currentUser.client_id = this.dadosBaseUrl.app_id;
+        ResourceOwner.client_id = this.dadosBaseUrl.app_id;
+        let url = this.auth_url+'?response_type=code&client_id=' + this.currentUser.client_id + '&state=xyz%20&redirect_uri='+'/'+this.nomeDoSistema+"/index.html/";
+        return {url:url};                   
     }
 
     getClientCode(client:string):Observable<any> {
@@ -119,7 +110,7 @@ export class AuthenticationService  {
             client = count[0];
         }
       
-        return this.http.get (this.base_url + '/auth/client?filter={"name":"' + client + '"}')
+        return this.http.get (this.auth_url + '/auth/client?filter={"name":"' + client + '"}')
             .pipe(
                 map ((resposta:any) => {
                     this.nomeDoSistema = client;
@@ -286,33 +277,27 @@ export class AuthenticationService  {
         let url = window.location.href;
         let array = url.split ('/');
         let dominio = array[2].split(':');
+        let urlReturn = this.getUrl()
+  
+        this.cancelPeriodicIncrement ();
+        localStorage.removeItem (this.nomeDoSistema);
+        this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
+        this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
+        this.currentUser = {};
+        window.location.href = urlReturn.url;       
 
-        this.getUrl()
-
-        .subscribe((resp:any)=>{
-            this.cancelPeriodicIncrement ();
-            localStorage.removeItem (this.nomeDoSistema);
-            this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
-            this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
-            this.currentUser = {};
-            window.location.href = resp.url;       
-
-        });
     }
 
     reset ():void {
         let url = window.location.href;
         let array = url.split ('/');
-        let dominio = array[2].split(':');
-        
-        this.getUrl()
-        .subscribe((resp:any)=>{   
-            this.cancelPeriodicIncrement ();
-            localStorage.removeItem (this.nomeDoSistema);
-            this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
-            this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
-            this.currentUser = {};
-        });
+        let dominio = array[2].split(':');  
+        this.cancelPeriodicIncrement ();
+        localStorage.removeItem (this.nomeDoSistema);
+        this.cookieService.setCookie("token",' ',this.currentUser.expires_in,'/',dominio[0],false);
+        this.cookieService.setCookie("dateAccessPage",' ',this.currentUser.expires_in,'/',dominio[0],false);
+        this.currentUser = {};
+
     }
 
     findUser ():Observable<any> {

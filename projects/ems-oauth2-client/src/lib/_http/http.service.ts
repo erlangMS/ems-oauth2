@@ -82,7 +82,7 @@ export class HttpService implements OnInit {
 
     private criptografarUrl(url: string): string {
         if (RedirectService.getInstance().erlangmsUrlMask == true) {
-            return "/erl.ms/" + btoa(AuthenticationService.base_url_temp + url);
+            return AuthenticationService.base_url_temp+"/erl.ms/" + btoa(url);
         } else {
             return AuthenticationService.base_url_temp + url;
         }
@@ -97,9 +97,8 @@ export class HttpService implements OnInit {
     // manipula erros da resposta http
     public handleError(error: Response | any): Observable<any> {
         let errMsg: string;
-        if (error instanceof Response) {
-            const body = error.json() || '';
-            const err = body.message || JSON.stringify(body);
+        if (error.error != 'enoent') {
+            const err = error.error || JSON.stringify(error);
             errMsg = err;
 
         } else {

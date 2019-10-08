@@ -33,13 +33,14 @@ export class RedirectService implements OnDestroy {
         AuthenticationService.base_url_temp = baseUrl.base_url;
         this.authenticationService.auth_url = baseUrl.auth_url;
         this.authenticationService.erlangmsUrlMask = baseUrl.url_mask;
+        this.authenticationService.dadosBaseUrl = baseUrl;
 
         var passport  = window.location.href.split('passport=')[1];
   
         return Observable.create((observer:any) =>{
-            this.authenticationService.getUrl()
-            .subscribe((result:any) =>{
-                this.auth_url = result.url;
+            let urlReturn = this.authenticationService.getUrl()
+           
+                this.auth_url = urlReturn.url;
                 if(passport != undefined){
                       /*
                        * Quando vier com passport como parametro executa está função passando o code null
@@ -90,10 +91,7 @@ export class RedirectService implements OnDestroy {
             },
             (error:any) => {
                 console.log(error)
-            });
-        });
-
-           
+            });           
   }
 
 
@@ -231,7 +229,7 @@ export class RedirectService implements OnDestroy {
               return Observable.create((observer:any) =>{
                 let parts =this.auth_url.split('client_id=');
                 let number = parts[1].split('&');
-                window.location.href = parts[0]+'client_id='+this.authenticationService.currentUser.client_id+'&'+number[1]+'&'+number[2];
+                window.location.href = parts[0]+'client_id='+number[0]+'&'+number[1]+'&'+number[2];
                 return observer;
               });             
 
