@@ -26,15 +26,21 @@ export class RedirectService implements OnDestroy {
        return RedirectService.instanceAuthenticationService;
     }
 
-    startRedirectFromBarramento(baseUrl:string):Observable<any>{
+    startRedirectFromBarramento(baseUrl):Observable<any>{
         let urlName = window.location.href.split('/');
-        this.authenticationService.base_url = baseUrl;
+
+        this.authenticationService.base_url = baseUrl.base_url;
+        AuthenticationService.base_url_temp = baseUrl.base_url;
+        this.authenticationService.auth_url = baseUrl.auth_url;
+        this.authenticationService.erlangmsUrlMask = baseUrl.url_mask;
+        this.authenticationService.dadosBaseUrl = baseUrl;
+
         var passport  = window.location.href.split('passport=')[1];
   
         return Observable.create((observer:any) =>{
-            this.authenticationService.getUrl()
-            .subscribe((result:any) =>{
-                this.auth_url = result.url;
+            let urlReturn = this.authenticationService.getUrl()
+           
+                this.auth_url = urlReturn.url;
                 if(passport != undefined){
                       /*
                        * Quando vier com passport como parametro executa está função passando o code null
@@ -85,10 +91,7 @@ export class RedirectService implements OnDestroy {
             },
             (error:any) => {
                 console.log(error)
-            });
-        });
-
-           
+            });           
   }
 
 
@@ -208,9 +211,8 @@ export class RedirectService implements OnDestroy {
           let url_client = window.location.href;
           let array = url_client.split ('/');
           let nomeSistema = array[3].split('#');
-          let base_auth = this.auth_url.split('?');
           return Observable.create((observer:any) => {
-            this.authenticationService.redirectUserTokenAccess(base_auth[0], this.authenticationService.currentUser.client_id,this.authenticationService.clientSecret,code,
+            this.authenticationService.redirectUserTokenAccess(this.authenticationService.auth_url, this.authenticationService.currentUser.client_id,this.authenticationService.clientSecret,code,
                 'authorization_code','/'+nomeSistema[0]+'/index.html/')
                 .subscribe((resposta:any) => {
                     return observer;
@@ -227,7 +229,7 @@ export class RedirectService implements OnDestroy {
               return Observable.create((observer:any) =>{
                 let parts =this.auth_url.split('client_id=');
                 let number = parts[1].split('&');
-                window.location.href = parts[0]+'client_id='+this.authenticationService.currentUser.client_id+'&'+number[1]+'&'+number[2];
+                window.location.href = parts[0]+'client_id='+number[0]+'&'+number[1]+'&'+number[2];
                 return observer;
               });             
 
