@@ -54,8 +54,8 @@ export class AuthenticationService  {
         refresh_token: '',
         client_secret: '',
         default_host: '',
-        expires_in: 3600
-
+        expires_in: 3600,
+        pass_token: undefined
     }
 
     public nomeDoSistema:any = "";
@@ -86,7 +86,8 @@ export class AuthenticationService  {
             this.currentUser.timer = variaveisSistema.timer;
             this.currentUser.resource_owner = variaveisSistema.resource_owner;
             this.currentUser.refresh_token = variaveisSistema.resource_owner.refresh_token;
-            this.currentUser.expires_in = variaveisSistema.expires_in;   
+            this.currentUser.expires_in = variaveisSistema.expires_in; 
+            this.currentUser.pass_token = variaveisSistema.pass_token;  
             ResourceOwner.localStorage = variaveisSistema;
             ResourceOwner.client_id = variaveisSistema.client_id;   
         }

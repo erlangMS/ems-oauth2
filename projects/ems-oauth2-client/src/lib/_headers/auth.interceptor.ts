@@ -17,8 +17,9 @@ export class AuthInterceptor implements HttpInterceptor {
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         let copieReq:any = req.clone();
-       
-        if(RedirectService.getInstance().currentUser.token != '') {
+        RedirectService.getInstance().preencherDados();
+
+        if(RedirectService.getInstance().currentUser.token != '' && RedirectService.getInstance().currentUser.pass_token == undefined) {
             if(AuthInterceptor.keyHeader == ''){
                 AuthInterceptor.headers = new HttpHeaders().set('content-type','application/json; charset=utf-8')
                 .append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
@@ -27,8 +28,10 @@ export class AuthInterceptor implements HttpInterceptor {
                 .append('Authorization', 'Bearer '+RedirectService.getInstance().currentUser.token);
             }
         }
-
-        copieReq.headers = AuthInterceptor.headers;
+        
+        if(RedirectService.getInstance().currentUser.pass_token == undefined){
+            copieReq.headers = AuthInterceptor.headers;
+        }
           
         return next.handle(copieReq.clone({url:copieReq.url}));
     }
